@@ -1,23 +1,44 @@
-﻿namespace FamilyBudgetMVP;
+﻿using FamilyBudgetMVP.Models;
+using FamilyBudgetMVP.Services;
+using System.Collections.ObjectModel;
+
+namespace FamilyBudgetMVP;
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
+    private readonly DatabaseService _dbService;
+    private ObservableCollection<Transaction> _transactions = new();
 
-	public MainPage()
-	{
-		InitializeComponent();
-	}
+    public MainPage(DatabaseService dbService)
+    {
+        InitializeComponent();
+        _dbService = dbService;
+        
+        // Привязываем коллекцию к UI
+        TransactionsList.ItemsSource = _transactions;
 
-	private void OnCounterClicked(object? sender, EventArgs e)
-	{
-		count++;
+        LoadData();
+    }
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
+    private async void LoadData()
+    {
+        try 
+        {
+            var data = await _dbService.GetTransactionsAsync();
+            _transactions.Clear();
+            foreach (var t in data)
+            {
+                _transactions.Add(t);
+            }
 
-		SemanticScreenReader.Announce(CounterBtn.Text);
-	}
+            // Считаем баланс
+            decimal balance = data.Sum(t => t.Amount);
+            BalanceLabel.Text = $"{balance:F2} ₽";
+            BalanceLabel.TextColor = balance >= 0 ? Colors.Green : Colors.Red;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки данных: {ex.Message}");
+        }
+    }
 }
