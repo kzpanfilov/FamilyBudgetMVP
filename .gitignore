@@ -1,14 +1,38 @@
-# Игнорируем настройки Rider
+# Rider (JetBrains)
 .idea/
+*.userprefs
 
-# Игнорируем артефакты сборки (это самое важное, чтобы не засорять Git)
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
 **/bin/
 **/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/[Bb]uild/
 
-# Игнорируем локальную базу данных (она создаётся при запуске, коммитить её нельзя)
+# NuGet
+packages/
+project.assets.json
+*.nuget.props
+
+# Test & coverage results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+
+# Local databases (SQLite)
 *.db
 *.sqlite
 *.sqlite3
 
-# Игнорируем файл с зависимостями NuGet (он генерируется автоматически)
-project.assets.json
+# Misc
+.DS_Store
+Thumbs.db
+.env
+secrets.json
