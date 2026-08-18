@@ -8,39 +8,108 @@
         <converters:AmountColorConverter x:Key="AmountColorConverter" />
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto, *">
+    <!-- Основной контейнер: теперь он содержит форму И список -->
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
         
-        <!-- Заголовок с балансом -->
+        <!-- 1. Блок баланса (был у тебя) -->
         <VerticalStackLayout Grid.Row="0" Padding="20" Spacing="5">
             <Label Text="Текущий баланс" FontSize="18" TextColor="Gray" />
             <Label x:Name="BalanceLabel" Text="0.00 ₽" FontSize="32" FontAttributes="Bold" TextColor="#2E7D32" />
         </VerticalStackLayout>
 
-        <!-- Список транзакций -->
-        <CollectionView Grid.Row="1" x:Name="TransactionsList"
-                        ItemsSource="{Binding Transactions}" 
-                        EmptyView="Транзакций пока нет">
+        <!-- 2. ГРАФИК (Row 1) - Новый блок -->
+        <!-- HeightRequest="200" задает высоту графика -->
+        <ContentView Grid.Row="1" x:Name="ChartView" HeightRequest="200" Margin="10" />
+
+        <!-- 4. НОВАЯ ФОРМА ДОБАВЛЕНИЯ -->
+        <Frame Grid.Row="3" Padding="15" Margin="20, 10" CornerRadius="10" HasShadow="True" BorderColor="#333333">
+            <Grid ColumnDefinitions="*, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="10" RowSpacing="10">
+                
+                <!-- Поле: Описание -->
+                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" 
+                       x:Name="DescriptionEntry" 
+                       Placeholder="Например: Продукты" 
+                       ReturnType="Done" />
+                
+                <!-- Поле: Сумма -->
+                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" 
+                       x:Name="AmountEntry" 
+                       Placeholder="Сумма (руб)" 
+                       Keyboard="Numeric" 
+                       ReturnType="Done" />
+
+                <!-- Поле: Категория -->
+                <Picker Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" 
+                        x:Name="CategoryPicker" 
+                        Title="Выберите категорию" 
+                        Margin="0,5,0,0">
+                    <Picker.Items>
+                        <x:String>Продукты</x:String>
+                        <x:String>Транспорт</x:String>
+                        <x:String>Жилье</x:String>
+                        <x:String>Развлечения</x:String>
+                        <x:String>Здоровье</x:String>
+                        <x:String>Разное</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <!-- Кнопка: Добавить -->
+                <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
+                        Text="➕" 
+                        FontSize="24" 
+                        Clicked="OnAddTransactionClicked"
+                        BackgroundColor="#2E7D32" 
+                        TextColor="White"
+                        CornerRadius="50"
+                        HeightRequest="50"
+                        WidthRequest="50" />
+            </Grid>
+        </Frame>
+
+        <!-- 3. Список транзакций -->
+        <CollectionView Grid.Row="2" 
+                        x:Name="TransactionsList" 
+                        EmptyView="Нет транзакций. Добавьте первую!"
+                        Margin="0,0,0,20">
+            
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Frame Padding="15" Margin="10,5" CornerRadius="10" HasShadow="True">
-                        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="15">
+                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
+            
+                            <!-- Текст слева -->
                             <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="{Binding Description}" FontAttributes="Bold" FontSize="16" />
+                                <Label Text="{Binding Description}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
                                 <Label Text="{Binding Category}" TextColor="Gray" FontSize="14" />
                                 <Label Text="{Binding DateShort}" TextColor="LightGray" FontSize="12" />
                             </VerticalStackLayout>
-                            
+            
+                            <!-- Сумма по центру -->
                             <Label Grid.Column="1" 
                                    Text="{Binding FormattedAmount}" 
                                    FontSize="18" 
                                    FontAttributes="Bold"
-                                   TextColor="{Binding Amount, Converter={StaticResource AmountColorConverter}, Mode=OneWay}"
-                                   VerticalOptions="Center" />
+                                   TextColor="{Binding Amount, Converter={StaticResource AmountColorConverter}}"
+                                   VerticalOptions="Center" 
+                                   HorizontalOptions="End" />
+            
+                            <!-- Кнопка удаления справа -->
+                            <Button Grid.Column="2" 
+                                    Text="🗑️" 
+                                    FontSize="20"
+                                    Clicked="OnDeleteTransactionClicked"
+                                    BackgroundColor="Transparent"
+                                    Padding="0"
+                                    Margin="0"
+                                    WidthRequest="40"
+                                    HeightRequest="40"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="End" />
                         </Grid>
                     </Frame>
                 </DataTemplate>
+
             </CollectionView.ItemTemplate>
         </CollectionView>
-
     </Grid>
 </ContentPage>
