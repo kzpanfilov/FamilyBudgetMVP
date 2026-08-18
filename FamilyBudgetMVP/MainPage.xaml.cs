@@ -4,7 +4,8 @@ using FamilyBudgetMVP.Services;
 using System.Globalization;
 
 using Microcharts;
-using SkiaSharp; // Microcharts использует эту библиотеку для отрисовки
+using SkiaSharp;
+using SkiaSharp.Views.Maui.Controls; // Microcharts использует эту библиотеку для отрисовки
 
 namespace FamilyBudgetMVP;
 
@@ -28,7 +29,7 @@ public partial class MainPage : ContentPage
         try 
         {
             var data = await _dbService.GetTransactionsAsync();
-            
+        
             _transactions.Clear();
             foreach (var t in data)
             {
@@ -36,6 +37,9 @@ public partial class MainPage : ContentPage
             }
 
             UpdateBalance();
+        
+            // ✅ ДОБАВЛЕНО: Обновляем график после загрузки данных
+            UpdateChart(); 
         }
         catch (Exception ex)
         {
@@ -44,6 +48,57 @@ public partial class MainPage : ContentPage
         }
     }
 
+    private void UpdateChart()
+    {
+        var entries = GenerateChartEntries();
+
+        // 1. Создаем сам график (логика данных)
+        var chart = new BarChart
+        {
+            Entries = entries,
+            LabelOrientation = Orientation.Horizontal,
+            ValueLabelOrientation = Orientation.Horizontal,
+            BackgroundColor = SKColors.Transparent,
+            //Padding = new Thickness(10),
+            MaxValue = (float)(entries.Any() ? entries.Max(e => e.Value) * 1.2 : 100)
+        };
+
+        // 2. Создаем холст (UI элемент), который умеет рисовать графики Microcharts
+        var canvasView = new SKCanvasView
+        {
+            HorizontalOptions = LayoutOptions.FillAndExpand,
+            VerticalOptions = LayoutOptions.FillAndExpand
+        };
+
+        // 3. Подписываемся на событие рисования: когда холст готов, скажи графику "нарисуйся здесь"
+        canvasView.PaintSurface += (sender, args) =>
+        {
+            var surface = args.Surface;
+            var skCanvas = surface.Canvas;
+        
+            // Очищаем холст
+            skCanvas.Clear(SKColors.Transparent);
+
+            // Рисуем наш график на этом холсте
+            var skRect = args.Info.Rect;
+
+            var left = skRect.Left;
+            var top = skRect.Top;
+            var right = skRect.Right;
+            var  bottom = skRect.Bottom;
+
+            var canvasRect = new SKRect(left, top, right, bottom);
+            var width = canvasRect.Width;
+            var  height = canvasRect.Height;
+
+            chart.Draw(skCanvas, (int)width, (int)height);
+        };
+
+        // 4. Кладем холст в наш ContentView
+        ChartView.Content = canvasView;
+    }
+
+
     private void UpdateBalance()
     {
         decimal balance = _transactions.Sum(t => t.Amount);
@@ -51,9 +106,9 @@ public partial class MainPage : ContentPage
         BalanceLabel.TextColor = balance >= 0 ? Colors.Green : Colors.Red;
     }
 
-    private List<Entry> GenerateChartEntries()
+    private List<ChartEntry> GenerateChartEntries()
     {
-        var entries = new List<Entry>();
+        var entries = new List<ChartEntry>();
 
         // Группируем транзакции по категориям и суммируем Amount
         var grouped = _transactions
@@ -63,20 +118,20 @@ public partial class MainPage : ContentPage
             .OrderByDescending(x => x.Total) // Сортируем от самых больших трат
             .ToList();
 
-        // foreach (var group in grouped)
-        // {
-        //     // Для графика нам нужно положительное число (высота столбца)
-        //     decimal value = decimal.to Math.Abs(group.Total); 
-        //
-        //     var entry = new ChartEntry(value)
-        //     {
-        //         Label = group.Category,
-        //         ValueLabel = value.ToString("N0"), // Например: "3 500"
-        //         Color = SKColor.Parse(GetCategoryColor(group.Category)) // Цвет столбца
-        //     };
-        //
-        //     entries.Add(entry);
-        // }
+        foreach (var group in grouped)
+        {
+            // Для графика нам нужно положительное число (высота столбца)
+            float value = Convert.ToSingle(Math.Abs(group.Total)); 
+        
+            var entry = new ChartEntry(value)
+            {
+                Label = group.Category,
+                ValueLabel = value.ToString("N0"), // Например: "3 500"
+                Color = SKColor.Parse(GetCategoryColor(group.Category)) // Цвет столбца
+            };
+        
+            entries.Add(entry);
+        }
 
         return entries;
     }
@@ -125,6 +180,7 @@ public partial class MainPage : ContentPage
 
             _transactions.Add(newTransaction);
             UpdateBalance();
+            UpdateChart();
 
             DescriptionEntry.Text = string.Empty;
             AmountEntry.Text = string.Empty;
@@ -162,6 +218,7 @@ public partial class MainPage : ContentPage
             _transactions.Remove(transaction);
         
             UpdateBalance();
+            UpdateChart();
         
             await DisplayAlert("Успех", "Запись удалена", "OK");
         }

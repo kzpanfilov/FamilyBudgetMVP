@@ -21,51 +21,6 @@
         <!-- HeightRequest="200" задает высоту графика -->
         <ContentView Grid.Row="1" x:Name="ChartView" HeightRequest="200" Margin="10" />
 
-        <!-- 4. НОВАЯ ФОРМА ДОБАВЛЕНИЯ -->
-        <Frame Grid.Row="3" Padding="15" Margin="20, 10" CornerRadius="10" HasShadow="True" BorderColor="#333333">
-            <Grid ColumnDefinitions="*, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="10" RowSpacing="10">
-                
-                <!-- Поле: Описание -->
-                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" 
-                       x:Name="DescriptionEntry" 
-                       Placeholder="Например: Продукты" 
-                       ReturnType="Done" />
-                
-                <!-- Поле: Сумма -->
-                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" 
-                       x:Name="AmountEntry" 
-                       Placeholder="Сумма (руб)" 
-                       Keyboard="Numeric" 
-                       ReturnType="Done" />
-
-                <!-- Поле: Категория -->
-                <Picker Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" 
-                        x:Name="CategoryPicker" 
-                        Title="Выберите категорию" 
-                        Margin="0,5,0,0">
-                    <Picker.Items>
-                        <x:String>Продукты</x:String>
-                        <x:String>Транспорт</x:String>
-                        <x:String>Жилье</x:String>
-                        <x:String>Развлечения</x:String>
-                        <x:String>Здоровье</x:String>
-                        <x:String>Разное</x:String>
-                    </Picker.Items>
-                </Picker>
-                
-                <!-- Кнопка: Добавить -->
-                <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
-                        Text="➕" 
-                        FontSize="24" 
-                        Clicked="OnAddTransactionClicked"
-                        BackgroundColor="#2E7D32" 
-                        TextColor="White"
-                        CornerRadius="50"
-                        HeightRequest="50"
-                        WidthRequest="50" />
-            </Grid>
-        </Frame>
-
         <!-- 3. Список транзакций -->
         <CollectionView Grid.Row="2" 
                         x:Name="TransactionsList" 
@@ -111,5 +66,50 @@
 
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <!-- 4. НОВАЯ ФОРМА ДОБАВЛЕНИЯ -->
+        <Frame Grid.Row="3" Padding="15" Margin="20, 10" CornerRadius="10" HasShadow="True" BorderColor="#333333">
+            <Grid ColumnDefinitions="*, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="10" RowSpacing="10">
+                
+                <!-- Поле: Описание -->
+                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" 
+                       x:Name="DescriptionEntry" 
+                       Placeholder="Например: Продукты" 
+                       ReturnType="Done" />
+                
+                <!-- Поле: Сумма -->
+                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" 
+                       x:Name="AmountEntry" 
+                       Placeholder="Сумма (руб)" 
+                       Keyboard="Numeric" 
+                       ReturnType="Done" />
+
+                <!-- Поле: Категория -->
+                <Picker Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" 
+                        x:Name="CategoryPicker" 
+                        Title="Выберите категорию" 
+                        Margin="0,5,0,0">
+                    <Picker.Items>
+                        <x:String>Продукты</x:String>
+                        <x:String>Транспорт</x:String>
+                        <x:String>Жилье</x:String>
+                        <x:String>Развлечения</x:String>
+                        <x:String>Здоровье</x:String>
+                        <x:String>Разное</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <!-- Кнопка: Добавить -->
+                <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
+                        Text="➕" 
+                        FontSize="24" 
+                        Clicked="OnAddTransactionClicked"
+                        BackgroundColor="#2E7D32" 
+                        TextColor="White"
+                        CornerRadius="50"
+                        HeightRequest="50"
+                        WidthRequest="50" />
+            </Grid>
+        </Frame>
     </Grid>
 </ContentPage>
