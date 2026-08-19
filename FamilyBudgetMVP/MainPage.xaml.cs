@@ -4,6 +4,7 @@ using FamilyBudgetMVP.Services;
 using System.Globalization;
 
 using Microcharts;
+using Microcharts.Maui;
 using SkiaSharp;
 using SkiaSharp.Views.Maui.Controls; // Microcharts использует эту библиотеку для отрисовки
 
@@ -37,8 +38,7 @@ public partial class MainPage : ContentPage
             }
 
             UpdateBalance();
-        
-            // ✅ ДОБАВЛЕНО: Обновляем график после загрузки данных
+            // Обновляем график после загрузки данных
             UpdateChart(); 
         }
         catch (Exception ex)
@@ -53,25 +53,64 @@ public partial class MainPage : ContentPage
         var entries = GenerateChartEntries();
 
         // 1. Создаем сам график (логика данных)
-        var chart = new BarChart
+        // var chart = new BarChart
+        // {
+        //     Entries = entries,
+        //     LabelOrientation = Orientation.Horizontal,
+        //     ValueLabelOrientation = Orientation.Horizontal,
+        //     BackgroundColor = SKColors.Transparent,
+        //     //Padding = new Thickness(10),
+        //     MaxValue = (float)(entries.Any() ? entries.Max(e => e.Value) * 1.2 : 100)
+        // };
+
+        // 2. Создаем холст (UI элемент), который умеет рисовать графики Microcharts
+        /*var chartView = new ChartView
+        {
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill
+        };*/
+
+        var lineChart = new LineChart()
+        {
+            Entries = entries
+        };
+
+        var maxValue = entries.Max(e => Math.Abs(e.Value.Value));
+        
+        var barChart = new MyBarChart()
         {
             Entries = entries,
             LabelOrientation = Orientation.Horizontal,
             ValueLabelOrientation = Orientation.Horizontal,
-            BackgroundColor = SKColors.Transparent,
-            //Padding = new Thickness(10),
-            MaxValue = (float)(entries.Any() ? entries.Max(e => e.Value) * 1.2 : 100)
+            //BackgroundColor = SKColors.Transparent,
+            MaxValue = maxValue,
+            //MinValue = 0,
+            ShowYAxisLines = true,
+            ShowYAxisText = true,
+            YAxisLinesPaint = new SKPaint() { Color = SKColors.Blue, IsAntialias = true },
+            //LabelTextSize = 20,
+            ValueLabelOption = ValueLabelOption.TopOfElement,
+            SerieLabelTextSize = 20,
+            
+            LegendOption = SeriesLegendOption.Top
         };
-
-        // 2. Создаем холст (UI элемент), который умеет рисовать графики Microcharts
-        var canvasView = new SKCanvasView
+        
+        //string format = "#,0,,.#0M"; // million, etc.
+        //barChart.Series.ToList().ForEach(series => series.);        
+        var chartView = new ChartView
         {
-            HorizontalOptions = LayoutOptions.FillAndExpand,
-            VerticalOptions = LayoutOptions.FillAndExpand
+            //Frame = new Rect(),
+           // AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable,
+            Chart = barChart,
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill
         };
+        
+        
+        
 
         // 3. Подписываемся на событие рисования: когда холст готов, скажи графику "нарисуйся здесь"
-        canvasView.PaintSurface += (sender, args) =>
+        /*canvasView.PaintSurface += (sender, args) =>
         {
             var surface = args.Surface;
             var skCanvas = surface.Canvas;
@@ -91,11 +130,11 @@ public partial class MainPage : ContentPage
             var width = canvasRect.Width;
             var  height = canvasRect.Height;
 
-            chart.Draw(skCanvas, (int)width, (int)height);
-        };
+            chart.Draw(skCanvas, (int) width, (int) height);
+        };*/
 
         // 4. Кладем холст в наш ContentView
-        ChartView.Content = canvasView;
+        ChartView.Content =  chartView;
     }
 
 
@@ -127,9 +166,10 @@ public partial class MainPage : ContentPage
             {
                 Label = group.Category,
                 ValueLabel = value.ToString("N0"), // Например: "3 500"
-                Color = SKColor.Parse(GetCategoryColor(group.Category)) // Цвет столбца
+                ValueLabelColor = GetCategoryColor(group.Category),
+                Color = GetCategoryColor(group.Category), // Цвет столбца
             };
-        
+
             entries.Add(entry);
         }
 
@@ -137,16 +177,16 @@ public partial class MainPage : ContentPage
     }
 
 // Простой метод для подбора цвета (чтобы не было одинаковых)
-    private string GetCategoryColor(string category)
+    private SKColor GetCategoryColor(string category)
     {
         return category switch
         {
-            "Продукты" => "#FF5722",   // Оранжевый
-            "Транспорт" => "#2196F3", // Синий
-            "Жилье" => "#9C27B0",     // Фиолетовый
-            "Развлечения" => "#FFC107",// Желтый
-            "Здоровье" => "#4CAF50",   // Зеленый
-            _ => "#757575"            // Серый для "Разное"
+            "Продукты" => SKColors.Orange,   // Оранжевый
+            "Транспорт" => SKColors.Brown, // Синий
+            "Жилье" => SKColors.Violet,     // Фиолетовый
+            "Развлечения" => SKColors.Yellow,// Желтый
+            "Здоровье" => SKColors.Green,   // Зеленый
+            _ => SKColors.Gray            // Серый для "Разное"
         };
     }
     
@@ -225,6 +265,15 @@ public partial class MainPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Ошибка", $"Не удалось удалить: {ex.Message}", "OK");
+        }
+    }
+
+
+    public class MyBarChart : BarChart
+    {
+        protected override void GenerateDefaultSerie(IEnumerable<ChartEntry> value)
+        {
+            UpdateSeries(value.Select(e => new ChartSerie { Entries = [e], Name = e.Label, Color = e.Color }));
         }
     }
 

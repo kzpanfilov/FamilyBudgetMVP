@@ -67,9 +67,13 @@
 
     <ItemGroup>
         <PackageReference Include="Microcharts" Version="2.0.0.3" />
+        <PackageReference Include="Microcharts.Core" Version="2.0.0.3" />
+        <PackageReference Include="Microcharts.Maui" Version="2.0.0.3" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0"/>
         <PackageReference Include="SkiaSharp" Version="4.151.1" />
+        <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.151.1" />
+        <PackageReference Include="SkiaSharp.Views.Maui.Core" Version="4.151.1" />
         <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
         <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     </ItemGroup>
