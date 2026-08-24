@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.HistoryPage"
+             Title="История операций">
+
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14" Padding="20,8">
+
+        <!-- Заголовок + фильтры -->
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <HorizontalStackLayout Spacing="8">
+                <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                <Label Text="История операций" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <Border Style="{StaticResource Card}" Padding="14,12">
+                <VerticalStackLayout Spacing="10">
+
+                    <!-- Поиск по описанию -->
+                    <Border Style="{StaticResource InputWrap}">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="🔍" FontSize="14" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                            <Entry Grid.Column="1" x:Name="SearchEntry"
+                                   Placeholder="Поиск по описанию"
+                                   FontSize="14"
+                                   TextChanged="OnSearchTextChanged"
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <!-- Категория -->
+                        <Border Grid.Column="0" Style="{StaticResource InputWrap}">
+                            <Picker x:Name="CategoryFilterPicker"
+                                    Title="Все категории"
+                                    FontSize="14"
+                                    SelectedIndexChanged="OnFilterChanged"/>
+                        </Border>
+
+                        <!-- Сортировка -->
+                        <Border Grid.Column="1" Style="{StaticResource InputWrap}">
+                            <Picker x:Name="SortPicker"
+                                    Title="Сортировка"
+                                    FontSize="14"
+                                    WidthRequest="170"
+                                    SelectedIndexChanged="OnSortChanged">
+                                <Picker.Items>
+                                    <x:String>Сначала новые</x:String>
+                                    <x:String>Сначала старые</x:String>
+                                    <x:String>По сумме</x:String>
+                                </Picker.Items>
+                            </Picker>
+                        </Border>
+                    </Grid>
+
+                    <!-- Период -->
+                    <HorizontalStackLayout Spacing="6">
+                        <Border x:Name="PeriodChipAll" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                                StrokeShape="RoundRectangle 10" Padding="12,6">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="Selection">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Teal700}"/>
+                                                <Setter Property="StrokeThickness" Value="0"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
+                            <Label x:Name="PeriodChipAllLabel" Text="Всё время" FontSize="12"
+                                   TextColor="{StaticResource InkSecondary}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="Selection">
+                                            <VisualState x:Name="Normal"/>
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="TextColor" Value="White"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+                            </Label>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPeriodTapped" CommandParameter="0"/>
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <Border x:Name="PeriodChip30" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                                StrokeShape="RoundRectangle 10" Padding="12,6">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="Selection">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Teal700}"/>
+                                                <Setter Property="StrokeThickness" Value="0"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
+                            <Label x:Name="PeriodChip30Label" Text="30 дней" FontSize="12"
+                                   TextColor="{StaticResource InkSecondary}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="Selection">
+                                            <VisualState x:Name="Normal"/>
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="TextColor" Value="White"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+                            </Label>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPeriodTapped" CommandParameter="30"/>
+                            </Border.GestureRecognizers>
+                        </Border>
+
+                        <Border x:Name="PeriodChip7" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                                StrokeShape="RoundRectangle 10" Padding="12,6">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="Selection">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="BackgroundColor" Value="{StaticResource Teal700}"/>
+                                                <Setter Property="StrokeThickness" Value="0"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
+                            <Label x:Name="PeriodChip7Label" Text="7 дней" FontSize="12"
+                                   TextColor="{StaticResource InkSecondary}">
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroupList>
+                                        <VisualStateGroup x:Name="Selection">
+                                            <VisualState x:Name="Normal"/>
+                                            <VisualState x:Name="Selected">
+                                                <VisualState.Setters>
+                                                    <Setter Property="TextColor" Value="White"/>
+                                                </VisualState.Setters>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateGroupList>
+                                </VisualStateManager.VisualStateGroups>
+                            </Label>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPeriodTapped" CommandParameter="7"/>
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </HorizontalStackLayout>
+
+                    <Label x:Name="SummaryLabel" Text="" FontFamily="OpenSansSemibold" FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- Список -->
+        <CollectionView Grid.Row="2"
+                        x:Name="TransactionsList"
+                        IsGrouped="True"
+                        Margin="-8,-4,-8,0">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="0,36" Spacing="6" HorizontalOptions="Center">
+                    <Label Text="🔍" FontSize="44" HorizontalOptions="Center"/>
+                    <Label Text="Ничего не найдено"
+                           FontFamily="OpenSansSemibold" FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Попробуйте изменить фильтры"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto" Padding="12,10,12,4">
+                        <Label Text="{Binding Title}"
+                               FontFamily="OpenSansSemibold" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                        <Label Grid.Column="1" Text="{Binding DayTotalText}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItemView>
+                                <Border WidthRequest="76" Margin="2,6" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 16">
+                                    <Border.Background><SolidColorBrush Color="#E5484D"/></Border.Background>
+                                    <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+                                        <Label Text="🗑" FontSize="18" HorizontalOptions="Center"/>
+                                        <Label Text="Удалить" FontSize="11" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDeleteTransactionTapped"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </SwipeItemView>
+                        </SwipeView.RightItems>
+
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12" Padding="12,7">
+                            <Grid.GestureRecognizers>
+                                <PointerGestureRecognizer PointerEntered="OnRowPointerEntered" PointerExited="OnRowPointerExited"/>
+                            </Grid.GestureRecognizers>
+
+                            <Border Grid.Column="0"
+                                    WidthRequest="40" HeightRequest="40"
+                                    StrokeThickness="0"
+                                    StrokeShape="Ellipse"
+                                    BackgroundColor="{Binding Category, Converter={StaticResource CategoryTint}}">
+                                <Label Text="{Binding Category, Converter={StaticResource CategoryIcon}}"
+                                       FontSize="18"
+                                       HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Description}"
+                                       FontFamily="OpenSansSemibold" FontSize="15"
+                                       TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"
+                                       LineBreakMode="TailTruncation" MaxLines="1"/>
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{Binding Category}" FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                                    <Label Text="•" FontSize="12" VerticalOptions="Start"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                    <Label Text="{Binding DateShort}" FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="2"
+                                   Text="{Binding FormattedAmount}"
+                                   FontFamily="OpenSansSemibold" FontSize="14"
+                                   TextColor="{Binding Amount, Converter={StaticResource AmountColorConverter}}"
+                                   VerticalOptions="Center"/>
+
+                            <Button Grid.Column="3"
+                                    Text="✕"
+                                    Style="{StaticResource GhostDelete}"
+                                    IsVisible="False"
+                                    Clicked="OnDeleteTransactionClicked"
+                                    VerticalOptions="Center"/>
+
+                            <BoxView Grid.ColumnSpan="4"
+                                     HeightRequest="1"
+                                     VerticalOptions="End"
+                                     Color="{AppThemeBinding Light={StaticResource SurfaceBorder}, Dark={StaticResource SurfaceBorderDark}}"/>
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.CategoryDetailPage"
+             Title="Детализация">
+
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+
+        <Border Style="{StaticResource Card}"
+                WidthRequest="{OnIdiom Desktop=480, Tablet=480, Phone=-1}"
+                Padding="0">
+            <Border.StrokeShape><RoundRectangle CornerRadius="28"/></Border.StrokeShape>
+
+            <Grid RowDefinitions="Auto,*" RowSpacing="0">
+
+                <!-- Шапка: категория, месяц, итог -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="Auto,*,Auto"
+                      ColumnSpacing="14"
+                      Padding="20,18">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#0B3D3A" Offset="0"/>
+                            <GradientStop Color="#12968A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+
+                    <Border Grid.Column="0"
+                            WidthRequest="44" HeightRequest="44"
+                            StrokeThickness="0" StrokeShape="Ellipse"
+                            BackgroundColor="{Binding TintHex, Converter={StaticResource HexToColor}}">
+                        <Label Text="{Binding Icon}" FontSize="20"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                        <Label Text="{Binding Title}" FontFamily="OpenSansSemibold" FontSize="17" TextColor="White"/>
+                        <Label Text="{Binding MonthTitle}" FontSize="12" TextColor="#BFE8E2"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Grid.Column="2" Spacing="1" HorizontalOptions="End" VerticalOptions="Center">
+                        <Label Text="{Binding TotalText}" FontFamily="OpenSansSemibold" FontSize="17"
+                               TextColor="{AppThemeBinding Light={StaticResource ExpenseRed}, Dark={StaticResource ExpenseRedDark}}"/>
+                        <Label Text="{Binding CountText}" FontSize="11" TextColor="#BFE8E2" HorizontalOptions="End"/>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Список операций категории -->
+                <CollectionView Grid.Row="1" x:Name="ItemsList" Margin="8,4,8,8">
+
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="0,26" Spacing="4" HorizontalOptions="Center">
+                            <Label Text="🧾" FontSize="36" HorizontalOptions="Center"/>
+                            <Label Text="В этом месяце расходов нет" FontSize="13" HorizontalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="12,7">
+                                <BoxView Grid.Column="0" WidthRequest="3" HeightRequest="30" CornerRadius="2"
+                                         VerticalOptions="Center"
+                                         Color="{Binding Category, Converter={StaticResource HexToCategoryColor}}"/>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                    <Label Text="{Binding Description}" FontFamily="OpenSansSemibold" FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"
+                                           LineBreakMode="TailTruncation" MaxLines="1"/>
+                                    <HorizontalStackLayout Spacing="5">
+                                        <Label Text="{Binding DateShort}" FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                        <Label Text="•" FontSize="12" VerticalOptions="Start"
+                                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                        <Label Text="{Binding TimeText}" FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="2" Text="{Binding FormattedAmount}"
+                                       FontFamily="OpenSansSemibold" FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource ExpenseRed}, Dark={StaticResource ExpenseRedDark}}"
+                                       VerticalOptions="Center"/>
+
+                                <BoxView Grid.ColumnSpan="3" HeightRequest="1" VerticalOptions="End"
+                                         Color="{AppThemeBinding Light={StaticResource SurfaceBorder}, Dark={StaticResource SurfaceBorderDark}}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
+    </VerticalStackLayout>
+</ContentPage>

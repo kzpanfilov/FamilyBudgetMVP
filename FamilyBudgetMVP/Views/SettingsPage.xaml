@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.SettingsPage"
+             Title="Настройки">
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="14" Padding="20,8">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="10">
+            <HorizontalStackLayout Spacing="8">
+                <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                <Label Text="Категории" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+            <Label Text="Категории используются в форме операции и на графике расходов."
+                   FontSize="13"
+                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+        </VerticalStackLayout>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Список категорий -->
+                <Border Style="{StaticResource Card}" Padding="8">
+                    <CollectionView x:Name="CategoriesList">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12" Padding="12,7">
+                                    <Grid.GestureRecognizers>
+                                        <!-- клик по строке — редактирование месячного лимита -->
+                                        <TapGestureRecognizer Tapped="OnCategoryTapped"/>
+                                    </Grid.GestureRecognizers>
+
+                                    <Border Grid.Column="0"
+                                            WidthRequest="40" HeightRequest="40"
+                                            StrokeThickness="0"
+                                            StrokeShape="Ellipse"
+                                            BackgroundColor="{Binding TintHex, Converter={StaticResource HexToColor}}">
+                                        <Label Text="{Binding Icon}" FontSize="18"
+                                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                                    </Border>
+
+                                    <BoxView Grid.Column="1"
+                                             WidthRequest="10" HeightRequest="10"
+                                             CornerRadius="5"
+                                             VerticalOptions="Center"
+                                             Color="{Binding ColorHex, Converter={StaticResource HexToColor}}"/>
+
+                                    <VerticalStackLayout Grid.Column="2" Spacing="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}"
+                                               FontFamily="OpenSansSemibold" FontSize="15"
+                                               TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"/>
+                                        <Label Text="{Binding LimitText}" FontSize="11"
+                                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                    </VerticalStackLayout>
+
+                                    <Button Grid.Column="3" Text="✕"
+                                            Style="{StaticResource GhostDelete}"
+                                            Clicked="OnDeleteCategoryClicked"
+                                            VerticalOptions="Center"/>
+
+                                    <BoxView Grid.ColumnSpan="4" HeightRequest="1" VerticalOptions="End"
+                                             Color="{AppThemeBinding Light={StaticResource SurfaceBorder}, Dark={StaticResource SurfaceBorderDark}}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+
+                <!-- Новая категория -->
+                <Border Style="{StaticResource Card}" Padding="18">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="24"/></Border.StrokeShape>
+                    <VerticalStackLayout Spacing="12">
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                            <Label Text="Новая категория" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Border Style="{StaticResource InputWrap}">
+                            <Entry x:Name="NameEntry"
+                                   Placeholder="Название, например: Обучение"
+                                   ReturnType="Done"
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </Border>
+
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="10">
+                            <Border Grid.Column="0" Style="{StaticResource InputWrap}">
+                                <Entry x:Name="IconEntry"
+                                       Placeholder="📦"
+                                       MaxLength="4"
+                                       HorizontalTextAlignment="Center"
+                                       FontSize="18"/>
+                            </Border>
+                            <HorizontalStackLayout Grid.Column="1" x:Name="SwatchPanel" Spacing="8" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <Button Text="＋  Добавить категорию"
+                                Style="{StaticResource PrimaryButton}"
+                                Clicked="OnAddCategoryClicked"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Данные: экспорт -->
+                <Border Style="{StaticResource Card}" Padding="18">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="24"/></Border.StrokeShape>
+                    <VerticalStackLayout Spacing="12">
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                            <Label Text="Данные" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Label Text="Выгрузка всех операций в CSV (Excel): дата, тип, категория, сумма, описание."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+
+                        <Button Text="⬇  Выгрузить операции в CSV"
+                                Style="{StaticResource PrimaryButton}"
+                                Clicked="OnExportClicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

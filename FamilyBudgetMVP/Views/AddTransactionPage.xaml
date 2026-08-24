@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.AddTransactionPage"
+             Title="Новая операция">
+
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+
+        <Border Style="{StaticResource Card}"
+                WidthRequest="{OnIdiom Desktop=440, Tablet=440, Phone=-1}"
+                Padding="24">
+            <Border.StrokeShape><RoundRectangle CornerRadius="28"/></Border.StrokeShape>
+
+            <VerticalStackLayout Spacing="14">
+
+                <HorizontalStackLayout Spacing="8">
+                    <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                    <Label Text="Новая операция" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+
+                <!-- Тип операции -->
+                <HorizontalStackLayout Spacing="8">
+                    <Border x:Name="ExpenseChip" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                            StrokeShape="RoundRectangle 14" Padding="16,9" BackgroundColor="Transparent">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="Selection">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                            <Setter Property="Stroke" Value="{StaticResource SurfaceBorder}"/>
+                                            <Setter Property="StrokeThickness" Value="1"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="{StaticResource ExpenseRed}"/>
+                                            <Setter Property="StrokeThickness" Value="0"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                        <Label x:Name="ExpenseChipLabel" Text="−  Расход" FontFamily="OpenSansSemibold" FontSize="14"
+                               TextColor="{StaticResource InkPrimary}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="Selection">
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="TextColor" Value="White"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
+                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnExpenseTapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                    <Border x:Name="IncomeChip" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                            StrokeShape="RoundRectangle 14" Padding="16,9" BackgroundColor="Transparent">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="Selection">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="Transparent"/>
+                                            <Setter Property="Stroke" Value="{StaticResource SurfaceBorder}"/>
+                                            <Setter Property="StrokeThickness" Value="1"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor" Value="{StaticResource IncomeGreen}"/>
+                                            <Setter Property="StrokeThickness" Value="0"/>
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                        <Label x:Name="IncomeChipLabel" Text="+  Доход" FontFamily="OpenSansSemibold" FontSize="14"
+                               TextColor="{StaticResource InkPrimary}">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroupList>
+                                    <VisualStateGroup x:Name="Selection">
+                                        <VisualState x:Name="Normal">
+                                            <VisualState.Setters>
+                                                <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Selected">
+                                            <VisualState.Setters>
+                                                <Setter Property="TextColor" Value="White"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateGroupList>
+                            </VisualStateManager.VisualStateGroups>
+                        </Label>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnIncomeTapped"/>
+                        </Border.GestureRecognizers>
+                    </Border>
+                </HorizontalStackLayout>
+
+                <!-- Описание -->
+                <VerticalStackLayout Spacing="4">
+                    <Border Style="{StaticResource InputWrap}">
+                        <Entry x:Name="DescriptionEntry"
+                               Placeholder="Описание, например: Продукты из Пятёрочки"
+                               ReturnType="Done"
+                               TextChanged="OnDescriptionTextChanged"
+                               PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                    </Border>
+                    <Label x:Name="DescriptionError" Text="Введите описание" IsVisible="False"
+                           FontSize="11" Margin="6,0,0,0" TextColor="{StaticResource ExpenseRed}"/>
+                </VerticalStackLayout>
+
+                <!-- Сумма и категория -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                        <Border Style="{StaticResource InputWrap}">
+                            <Entry x:Name="AmountEntry"
+                                   Placeholder="Сумма, ₽"
+                                   Keyboard="Numeric"
+                                   ReturnType="Done"
+                                   TextChanged="OnAmountTextChanged"
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </Border>
+                        <Label x:Name="AmountError" Text="Сумма должна быть больше нуля" IsVisible="False"
+                               FontSize="11" Margin="6,0,0,0" TextColor="{StaticResource ExpenseRed}"/>
+                    </VerticalStackLayout>
+
+                    <Border Grid.Column="1" Style="{StaticResource InputWrap}" VerticalOptions="Start">
+                        <!-- список категорий задается в code-behind из CategoryStore -->
+                        <Picker x:Name="CategoryPicker" Title="Категория" FontSize="14"/>
+                    </Border>
+                </Grid>
+
+                <!-- Кнопки -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Grid.Column="0" Text="Отмена"
+                            Style="{StaticResource GhostDelete}"
+                            Clicked="OnCancelClicked"/>
+                    <Button Grid.Column="1" Text="Сохранить"
+                            Style="{StaticResource PrimaryButton}"
+                            Clicked="OnSaveClicked"/>
+                </Grid>
+
+            </VerticalStackLayout>
+        </Border>
+    </VerticalStackLayout>
+</ContentPage>
