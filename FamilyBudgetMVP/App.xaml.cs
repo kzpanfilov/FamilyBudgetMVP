@@ -1,7 +1,4 @@
-﻿using FamilyBudgetMVP.Models;
-using FamilyBudgetMVP.Services;
-
-namespace FamilyBudgetMVP;
+﻿namespace FamilyBudgetMVP;
 
 public partial class App : Application
 {
@@ -10,17 +7,8 @@ public partial class App : Application
 		InitializeComponent();
 	}
 
-	protected override Window CreateWindow(IActivationState activationState)
+	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		var window = new Window();
-
-		var ctx = activationState.Context;
-		var services = ctx.Services;
-		var dbService = services.GetRequiredService<DatabaseService>();
-
-		var mainPage = new MainPage(dbService); 
-        
-		window.Page = mainPage;
-		return window;
+		return new Window(new AppShell());
 	}
 }

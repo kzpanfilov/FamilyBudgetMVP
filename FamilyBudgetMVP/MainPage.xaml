@@ -1,117 +1,199 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:converters="clr-namespace:FamilyBudgetMVP.Converters"
-             xmlns:micro="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
-
              x:Class="FamilyBudgetMVP.MainPage"
              Title="Мой бюджет">
 
-    <ContentPage.Resources>
-        <converters:AmountColorConverter x:Key="AmountColorConverter" />
-    </ContentPage.Resources>
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto"
+          RowSpacing="14"
+          Padding="20,8">
 
-    <!-- Основной контейнер: теперь он содержит форму И список -->
-    <Grid RowDefinitions="Auto, Auto, *, Auto">
-        
-        <!-- 1. Блок баланса (был у тебя) -->
-        <VerticalStackLayout Grid.Row="0" Padding="20" Spacing="5">
-            <Label Text="Текущий баланс" FontSize="18" TextColor="Gray" />
-            <Label x:Name="BalanceLabel" Text="0.00 ₽" FontSize="32" FontAttributes="Bold" TextColor="#2E7D32" />
+        <!-- 1. HERO: баланс -->
+        <Border Grid.Row="0" Style="{StaticResource HeroCard}">
+            <Grid>
+                <!-- декоративные окружности -->
+                <Border WidthRequest="150" HeightRequest="150"
+                        HorizontalOptions="End" VerticalOptions="Start"
+                        TranslationX="46" TranslationY="-52"
+                        StrokeThickness="0" StrokeShape="Ellipse">
+                    <Border.Background><SolidColorBrush Color="#14FFFFFF"/></Border.Background>
+                </Border>
+                <Border WidthRequest="90" HeightRequest="90"
+                        HorizontalOptions="Start" VerticalOptions="End"
+                        TranslationX="-30" TranslationY="38"
+                        StrokeThickness="0" StrokeShape="Ellipse">
+                    <Border.Background><SolidColorBrush Color="#12FFFFFF"/></Border.Background>
+                </Border>
+
+                <VerticalStackLayout Spacing="2" Padding="4">
+                    <Label Text="МОЙ БЮДЖЕТ" Style="{StaticResource HeroCaption}" />
+                    <Label x:Name="BalanceLabel" Text="0,00 ₽" Style="{StaticResource HeroBalance}" />
+
+                    <HorizontalStackLayout Spacing="8" Margin="0,10,0,0">
+                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="10,6">
+                            <Border.Background><SolidColorBrush Color="#26FFFFFF"/></Border.Background>
+                            <Label x:Name="IncomeLabel" Text="↑ 0 ₽" Style="{StaticResource HeroChipText}" />
+                        </Border>
+                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="10,6">
+                            <Border.Background><SolidColorBrush Color="#1FFFFFFF"/></Border.Background>
+                            <Label x:Name="ExpenseLabel" Text="↓ 0 ₽" Style="{StaticResource HeroChipText}" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- 2. ГРАФИК РАСХОДОВ ПО КАТЕГОРИЯМ (текущий месяц) -->
+        <VerticalStackLayout Grid.Row="1" Spacing="10">
+            <HorizontalStackLayout Spacing="8">
+                <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                <Label Text="Расходы по категориям · месяц" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+
+            <!-- Предупреждение о лимитах -->
+            <Border x:Name="LimitWarningCard"
+                    IsVisible="False"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="14,9"
+                    BackgroundColor="{AppThemeBinding Light=#FDECEC, Dark=#3B1B1E}">
+                <Label x:Name="LimitWarningLabel"
+                       FontFamily="OpenSansSemibold" FontSize="13"
+                       TextColor="{AppThemeBinding Light={StaticResource ExpenseRed}, Dark={StaticResource ExpenseRedDark}}"/>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Padding="14,10">
+                <!-- клик по столбцу открывает детализацию категории -->
+                <ContentView x:Name="ChartView" HeightRequest="240" />
+            </Border>
         </VerticalStackLayout>
 
-        <!-- 2. ГРАФИК (Row 1) - Новый блок -->
-        <!-- HeightRequest="200" задает высоту графика -->
-        <ContentView Grid.Row="1" x:Name="ChartView" HeightRequest="200" Margin="10" />
+        <!-- 3. ДИНАМИКА РАСХОДОВ ПО ДНЯМ -->
+        <VerticalStackLayout Grid.Row="2" Spacing="10">
+            <HorizontalStackLayout Spacing="8">
+                <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                <Label Text="Динамика расходов · 30 дней" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
 
-        <!-- 3. Список транзакций -->
-        <CollectionView Grid.Row="2" 
-                        x:Name="TransactionsList" 
-                        EmptyView="Нет транзакций. Добавьте первую!"
-                        Margin="0,0,0,20">
-            
+            <Border Style="{StaticResource Card}" Padding="14,10">
+                <ContentView x:Name="DynamicsView" HeightRequest="170" />
+            </Border>
+        </VerticalStackLayout>
+
+        <!-- 4. ИСТОРИЯ -->
+        <Label Grid.Row="3" Text="История операций" Style="{StaticResource SectionTitle}" Margin="0,4,0,0"/>
+
+        <CollectionView Grid.Row="4"
+                        x:Name="TransactionsList"
+                        IsGrouped="True"
+                        Margin="-8,-4,-8,0">
+
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="0,36" Spacing="6" HorizontalOptions="Center">
+                    <Label Text="🧾" FontSize="44" HorizontalOptions="Center"/>
+                    <Label Text="Пока нет операций"
+                           FontFamily="OpenSansSemibold" FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Добавьте первую запись в форме ниже"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="*,Auto" Padding="12,10,12,4">
+                        <Label Text="{Binding Title}"
+                               FontFamily="OpenSansSemibold" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                        <Label Grid.Column="1" Text="{Binding DayTotalText}" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Padding="15" Margin="10,5" CornerRadius="10" HasShadow="True">
-                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
-            
-                            <!-- Текст слева -->
-                            <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="{Binding Description}" FontAttributes="Bold" FontSize="16" LineBreakMode="TailTruncation" />
-                                <Label Text="{Binding Category}" TextColor="Gray" FontSize="14" />
-                                <Label Text="{Binding DateShort}" TextColor="LightGray" FontSize="12" />
-                            </VerticalStackLayout>
-            
-                            <!-- Сумма по центру -->
-                            <Label Grid.Column="1" 
-                                   Text="{Binding FormattedAmount}" 
-                                   FontSize="18" 
-                                   FontAttributes="Bold"
-                                   TextColor="{Binding Amount, Converter={StaticResource AmountColorConverter}}"
-                                   VerticalOptions="Center" 
-                                   HorizontalOptions="End" />
-            
-                            <!-- Кнопка удаления справа -->
-                            <Button Grid.Column="2" 
-                                    Text="🗑️" 
-                                    FontSize="20"
-                                    Clicked="OnDeleteTransactionClicked"
-                                    BackgroundColor="Transparent"
-                                    Padding="0"
-                                    Margin="0"
-                                    WidthRequest="40"
-                                    HeightRequest="40"
-                                    VerticalOptions="Center"
-                                    HorizontalOptions="End" />
-                        </Grid>
-                    </Frame>
-                </DataTemplate>
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItemView>
+                                <Border WidthRequest="76" Margin="2,6" StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 16">
+                                    <Border.Background><SolidColorBrush Color="#E5484D"/></Border.Background>
+                                    <VerticalStackLayout VerticalOptions="Center" Spacing="0">
+                                        <Label Text="🗑" FontSize="18" HorizontalOptions="Center"/>
+                                        <Label Text="Удалить" FontSize="11" TextColor="White" HorizontalOptions="Center"/>
+                                    </VerticalStackLayout>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnDeleteTransactionTapped"/>
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </SwipeItemView>
+                        </SwipeView.RightItems>
 
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="12,7">
+                            <Grid.GestureRecognizers>
+                                <PointerGestureRecognizer PointerEntered="OnRowPointerEntered" PointerExited="OnRowPointerExited"/>
+                            </Grid.GestureRecognizers>
+
+                            <!-- аватар категории -->
+                            <Border Grid.Column="0"
+                                    WidthRequest="40" HeightRequest="40"
+                                    StrokeThickness="0"
+                                    StrokeShape="Ellipse"
+                                    BackgroundColor="{Binding Category, Converter={StaticResource CategoryTint}}">
+                                <Label Text="{Binding Category, Converter={StaticResource CategoryIcon}}"
+                                       FontSize="18"
+                                       HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+
+                            <!-- описание -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="{Binding Description}"
+                                       FontFamily="OpenSansSemibold" FontSize="15"
+                                       TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"
+                                       LineBreakMode="TailTruncation" MaxLines="1"/>
+                                <HorizontalStackLayout Spacing="5">
+                                    <Label Text="{Binding Category}" FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                                    <Label Text="•" FontSize="12" VerticalOptions="Start"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                    <Label Text="{Binding TimeText}" FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <!-- сумма -->
+                            <Label Grid.Column="2"
+                                   Text="{Binding FormattedAmount}"
+                                   FontFamily="OpenSansSemibold" FontSize="14"
+                                   TextColor="{Binding Amount, Converter={StaticResource AmountColorConverter}}"
+                                   VerticalOptions="Center"/>
+
+                            <!-- удаление (десктоп) -->
+                            <Button Grid.Column="3"
+                                    Text="✕"
+                                    Style="{StaticResource GhostDelete}"
+                                    IsVisible="False"
+                                    Clicked="OnDeleteTransactionClicked"
+                                    VerticalOptions="Center"/>
+
+                            <!-- разделитель ряда -->
+                            <BoxView Grid.ColumnSpan="3"
+                                     HeightRequest="1"
+                                     VerticalOptions="End"
+                                     Color="{AppThemeBinding Light={StaticResource SurfaceBorder}, Dark={StaticResource SurfaceBorderDark}}"/>
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- 4. НОВАЯ ФОРМА ДОБАВЛЕНИЯ -->
-        <Frame Grid.Row="3" Padding="15" Margin="20, 10" CornerRadius="10" HasShadow="True" BorderColor="#333333">
-            <Grid ColumnDefinitions="*, *, Auto" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="10" RowSpacing="10">
-                
-                <!-- Поле: Описание -->
-                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" 
-                       x:Name="DescriptionEntry" 
-                       Placeholder="Например: Продукты" 
-                       ReturnType="Done" />
-                
-                <!-- Поле: Сумма -->
-                <Entry Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" 
-                       x:Name="AmountEntry" 
-                       Placeholder="Сумма (руб)" 
-                       Keyboard="Numeric" 
-                       ReturnType="Done" />
-
-                <!-- Поле: Категория -->
-                <Picker Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" 
-                        x:Name="CategoryPicker" 
-                        Title="Выберите категорию" 
-                        Margin="0,5,0,0">
-                    <Picker.Items>
-                        <x:String>Продукты</x:String>
-                        <x:String>Транспорт</x:String>
-                        <x:String>Жилье</x:String>
-                        <x:String>Развлечения</x:String>
-                        <x:String>Здоровье</x:String>
-                        <x:String>Разное</x:String>
-                    </Picker.Items>
-                </Picker>
-                
-                <!-- Кнопка: Добавить -->
-                <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" 
-                        Text="➕" 
-                        FontSize="24" 
-                        Clicked="OnAddTransactionClicked"
-                        BackgroundColor="#2E7D32" 
-                        TextColor="White"
-                        CornerRadius="50"
-                        HeightRequest="50"
-                        WidthRequest="50" />
-            </Grid>
-        </Frame>
+        <!-- 5. ДОБАВЛЕНИЕ: открывает модальную форму -->
+        <Button Grid.Row="5"
+                Text="＋  Новая операция"
+                Style="{StaticResource PrimaryButton}"
+                Clicked="OnOpenAddTransaction"/>
     </Grid>
 </ContentPage>

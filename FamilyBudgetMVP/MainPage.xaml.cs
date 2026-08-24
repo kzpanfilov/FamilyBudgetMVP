@@ -1,280 +1,299 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
+using FamilyBudgetMVP.Controls;
+using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Models;
 using FamilyBudgetMVP.Services;
-using System.Globalization;
+using FamilyBudgetMVP.Views;
 
 using Microcharts;
 using Microcharts.Maui;
 using SkiaSharp;
-using SkiaSharp.Views.Maui.Controls; // Microcharts использует эту библиотеку для отрисовки
+using SkiaSharp.Views.Maui.Controls; // Microcharts ���������� ��� ���������� ��� ���������
 
 namespace FamilyBudgetMVP;
 
+/// <summary>
+/// �������: ������, ������ �������� � ��������� ��������.
+/// ������ �������� � � BudgetService, �������� � � TransactionService,
+/// ��������� � � CategoryStore. ����� ������ UI-�������.
+/// </summary>
 public partial class MainPage : ContentPage
 {
-    private readonly DatabaseService _dbService;
-    private ObservableCollection<Transaction> _transactions = new();
+    private readonly TransactionService _txService;
+    private readonly BudgetService _budgetService;
+    private readonly CategoryStore _categories;
 
-    public MainPage(DatabaseService dbService)
+    private ObservableCollection<Transaction> _transactions = new();
+    private readonly ObservableCollection<TransactionsByDay> _history = new();
+
+    public MainPage(TransactionService txService, BudgetService budgetService, CategoryStore categories)
     {
         InitializeComponent();
-        _dbService = dbService;
-        TransactionsList.ItemsSource = _transactions;
-        
-        // Загружаем данные при старте
+        _txService = txService;
+        _budgetService = budgetService;
+        _categories = categories;
+
+        TransactionsList.ItemsSource = _history;
+
+        // ��������� ����� ���������� � ���������� � ������������ ����� �������
+        _categories.Changed += RefreshAll;
+
+        if (Application.Current != null)
+            Application.Current.RequestedThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e) => UpdateCharts();
+
+    // Тексты осей/значений графика: на тёмном фоне нужен светлый вариант
+    private static bool IsDarkTheme =>
+        Application.Current?.RequestedTheme == AppTheme.Dark;
+
+    private static SKColor AxisTextColor =>
+        SKColor.Parse(IsDarkTheme ? "#93A3A8" : "#5B6B70");
+
+    private static Color MutedTextColor =>
+        Color.FromArgb(IsDarkTheme ? "#93A3A8" : "#5B6B70");
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // ��������� ������ ����� �������� ��������� ����� ����������
         LoadDataAsync();
+    }
+
+    private async void OnOpenAddTransaction(object? sender, EventArgs e)
+    {
+        await Navigation.PushModalAsync(ServiceHelper.Get<AddTransactionPage>());
     }
 
     private async void LoadDataAsync()
     {
-        try 
+        try
         {
-            var data = await _dbService.GetTransactionsAsync();
-        
+            var data = await _txService.GetTransactionsAsync();
+
             _transactions.Clear();
             foreach (var t in data)
             {
                 _transactions.Add(t);
             }
 
-            UpdateBalance();
-            // Обновляем график после загрузки данных
-            UpdateChart(); 
+            RefreshAll();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка загрузки: {ex.Message}");
+            LogService.Error(ex, "Загрузка данных");
             BalanceLabel.Text = "Ошибка БД";
         }
     }
 
-    private void UpdateChart()
+    // ������ ����� ���������� ����� ��������� ������
+    private void RefreshAll()
     {
-        var entries = GenerateChartEntries();
-
-        // 1. Создаем сам график (логика данных)
-        // var chart = new BarChart
-        // {
-        //     Entries = entries,
-        //     LabelOrientation = Orientation.Horizontal,
-        //     ValueLabelOrientation = Orientation.Horizontal,
-        //     BackgroundColor = SKColors.Transparent,
-        //     //Padding = new Thickness(10),
-        //     MaxValue = (float)(entries.Any() ? entries.Max(e => e.Value) * 1.2 : 100)
-        // };
-
-        // 2. Создаем холст (UI элемент), который умеет рисовать графики Microcharts
-        /*var chartView = new ChartView
-        {
-            HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Fill
-        };*/
-
-        var lineChart = new LineChart()
-        {
-            Entries = entries
-        };
-
-        var maxValue = entries.Max(e => Math.Abs(e.Value.Value));
-        
-        var barChart = new MyBarChart()
-        {
-            Entries = entries,
-            LabelOrientation = Orientation.Horizontal,
-            ValueLabelOrientation = Orientation.Horizontal,
-            //BackgroundColor = SKColors.Transparent,
-            MaxValue = maxValue,
-            //MinValue = 0,
-            ShowYAxisLines = true,
-            ShowYAxisText = true,
-            YAxisLinesPaint = new SKPaint() { Color = SKColors.Blue, IsAntialias = true },
-            //LabelTextSize = 20,
-            ValueLabelOption = ValueLabelOption.TopOfElement,
-            SerieLabelTextSize = 20,
-            
-            LegendOption = SeriesLegendOption.Top
-        };
-        
-        //string format = "#,0,,.#0M"; // million, etc.
-        //barChart.Series.ToList().ForEach(series => series.);        
-        var chartView = new ChartView
-        {
-            //Frame = new Rect(),
-           // AutoresizingMask = NSViewResizingMask.WidthSizable | NSViewResizingMask.HeightSizable,
-            Chart = barChart,
-            HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Fill
-        };
-        
-        
-        
-
-        // 3. Подписываемся на событие рисования: когда холст готов, скажи графику "нарисуйся здесь"
-        /*canvasView.PaintSurface += (sender, args) =>
-        {
-            var surface = args.Surface;
-            var skCanvas = surface.Canvas;
-        
-            // Очищаем холст
-            skCanvas.Clear(SKColors.Transparent);
-
-            // Рисуем наш график на этом холсте
-            var skRect = args.Info.Rect;
-
-            var left = skRect.Left;
-            var top = skRect.Top;
-            var right = skRect.Right;
-            var  bottom = skRect.Bottom;
-
-            var canvasRect = new SKRect(left, top, right, bottom);
-            var width = canvasRect.Width;
-            var  height = canvasRect.Height;
-
-            chart.Draw(skCanvas, (int) width, (int) height);
-        };*/
-
-        // 4. Кладем холст в наш ContentView
-        ChartView.Content =  chartView;
+        UpdateBalance();
+        RebuildHistory();
+        UpdateCharts();
     }
 
+    private void RebuildHistory()
+    {
+        _history.Clear();
+        foreach (var day in _budgetService.GroupByDay(_transactions))
+            _history.Add(day);
+    }
+
+    private void UpdateCharts()
+    {
+        var categories = _categories.All;
+
+        // ���������� ������: ������� �������� ������, �������� ���������� � �������
+        var entries = _budgetService.BuildMonthExpenseEntries(
+            _transactions, categories,
+            defaultValueLabelHex: IsDarkTheme ? "#E8EDEC" : "#1F2A2E");
+        UpdateLimitWarnings(categories);
+
+        if (entries.Count == 0)
+        {
+            ChartView.Content = new Label
+            {
+                Text = "??  ��� �������� �� �����",
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                FontFamily = "OpenSansSemibold",
+                TextColor = MutedTextColor
+            };
+        }
+        else
+        {
+            var barChart = new CategoryBarChart()
+            {
+                IsAnimated = false, // ����� AnimationProgress=0 � ����� ����������
+                Entries = entries,
+                LabelOrientation = Orientation.Horizontal,
+                ValueLabelOrientation = Orientation.Horizontal,
+                Margin = 8,
+                MaxValue = entries.Max(e => Math.Abs(e.Value ?? 0)),
+                LabelColor = AxisTextColor,
+                ValueLabelOption = ValueLabelOption.TopOfElement,
+                SerieLabelTextSize = 16,
+                LegendOption = SeriesLegendOption.None
+            };
+
+            ChartView.Content = CreateTappableChart(barChart, OnChartTapped);
+        }
+
+        // �������� ������ �������� �� ����
+        var dailyEntries = _budgetService.BuildDailyExpenseEntries(_transactions);
+
+        if (dailyEntries.Any(e => (e.Value ?? 0) > 0))
+        {
+            DynamicsView.Content = CreateTappableChart(new LineChart
+            {
+                IsAnimated = false,
+                Entries = dailyEntries,
+                Margin = 8,
+                LineSize = 3,
+                LineAreaAlpha = 20,
+                PointMode = PointMode.None,
+                LabelTextSize = 11,
+                LabelColor = AxisTextColor
+            });
+        }
+        else
+        {
+            DynamicsView.Content = new Label
+            {
+                Text = "??  ��� �������� �� ��������� 30 ����",
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                FontFamily = "OpenSansSemibold",
+                TextColor = MutedTextColor
+            };
+        }
+    }
+
+    private ChartView CreateTappableChart(Chart chart, EventHandler<TappedEventArgs>? tapped = null)
+    {
+        var chartView = new ChartView
+        {
+            Chart = chart,
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill
+        };
+
+        if (tapped != null)
+        {
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += tapped;
+            chartView.GestureRecognizers.Add(tapGesture);
+        }
+
+        return chartView;
+    }
+
+    private void OnChartTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is not ChartView chartView ||
+            chartView.Chart is not CategoryBarChart barChart ||
+            chartView.Width <= 0 || chartView.CanvasSize.Width <= 0)
+            return;
+
+        var position = e.GetPosition(chartView);
+        if (position is null)
+            return;
+
+        // ��������� ���������� ������������� � ������� ����� SkiaSharp
+        float scale = (float)(chartView.CanvasSize.Width / chartView.Width);
+        string? category = barChart.HitTest((float)(position.Value.X * scale), (float)(position.Value.Y * scale));
+
+        if (category != null)
+            OpenCategoryDetail(category);
+    }
+
+    private async void OpenCategoryDetail(string category)
+    {
+        var now = DateTime.Today;
+        var monthItems = _transactions
+            .Where(t => t.Amount < 0 &&
+                        t.Category == category &&
+                        t.Date.Year == now.Year &&
+                        t.Date.Month == now.Month)
+            .ToList();
+
+        await Navigation.PushModalAsync(new CategoryDetailPage(category, monthItems));
+    }
+
+    private void UpdateLimitWarnings(IReadOnlyList<Category> categories)
+    {
+        var issues = _budgetService.CheckMonthlyLimits(_transactions, categories);
+
+        if (issues.Count == 0)
+        {
+            LimitWarningCard.IsVisible = false;
+            return;
+        }
+
+        LimitWarningCard.IsVisible = true;
+        LimitWarningLabel.Text = "?  " + string.Join("    �    ", issues.Select(s =>
+            s.Exceeded
+                ? $"{s.Category}: {s.Spent:N0} �� {s.Limit:N0} ? � ���������� �� {s.Spent - s.Limit:N0} ?"
+                : $"{s.Category}: {s.Spent:N0} �� {s.Limit:N0} ? � ������ � ������"));
+    }
 
     private void UpdateBalance()
     {
-        decimal balance = _transactions.Sum(t => t.Amount);
-        BalanceLabel.Text = $"{balance:F2} ₽";
-        BalanceLabel.TextColor = balance >= 0 ? Colors.Green : Colors.Red;
+        var s = _budgetService.Summarize(_transactions);
+
+        BalanceLabel.Text = $"{s.Balance:N2} ?";
+        IncomeLabel.Text = $"^  {s.Income:N0} ?";
+        ExpenseLabel.Text = $"v  {s.Expense:N0} ?";
     }
 
-    private List<ChartEntry> GenerateChartEntries()
+    private async void OnDeleteTransactionClicked(object? sender, EventArgs e)
     {
-        var entries = new List<ChartEntry>();
-
-        // Группируем транзакции по категориям и суммируем Amount
-        var grouped = _transactions
-            .Where(t => t.Amount < 0) // Берем только расходы (отрицательные суммы)
-            .GroupBy(t => t.Category)
-            .Select(g => new { Category = g.Key, Total = g.Sum(t => t.Amount) })
-            .OrderByDescending(x => x.Total) // Сортируем от самых больших трат
-            .ToList();
-
-        foreach (var group in grouped)
-        {
-            // Для графика нам нужно положительное число (высота столбца)
-            float value = Convert.ToSingle(Math.Abs(group.Total)); 
-        
-            var entry = new ChartEntry(value)
-            {
-                Label = group.Category,
-                ValueLabel = value.ToString("N0"), // Например: "3 500"
-                ValueLabelColor = GetCategoryColor(group.Category),
-                Color = GetCategoryColor(group.Category), // Цвет столбца
-            };
-
-            entries.Add(entry);
-        }
-
-        return entries;
+        if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+            await TryDeleteTransactionAsync(transaction);
     }
 
-// Простой метод для подбора цвета (чтобы не было одинаковых)
-    private SKColor GetCategoryColor(string category)
+    private async void OnDeleteTransactionTapped(object? sender, TappedEventArgs e)
     {
-        return category switch
-        {
-            "Продукты" => SKColors.Orange,   // Оранжевый
-            "Транспорт" => SKColors.Brown, // Синий
-            "Жилье" => SKColors.Violet,     // Фиолетовый
-            "Развлечения" => SKColors.Yellow,// Желтый
-            "Здоровье" => SKColors.Green,   // Зеленый
-            _ => SKColors.Gray            // Серый для "Разное"
-        };
-    }
-    
-    // Обработчик кнопки "Добавить"
-    private async void OnAddTransactionClicked(object sender, EventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(DescriptionEntry.Text) || string.IsNullOrWhiteSpace(AmountEntry.Text))
-        {
-            await DisplayAlert("Ошибка", "Заполните описание и сумму!", "OK");
-            return;
-        }
-
-        if (!decimal.TryParse(AmountEntry.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal amount))
-        {
-            await DisplayAlert("Ошибка", "Введите корректное число!", "OK");
-            return;
-        }
-
-        try 
-        {
-            var newTransaction = new Transaction
-            {
-                Description = DescriptionEntry.Text,
-                Amount = amount,
-                // ✅ Берем выбранную категорию из Picker
-                Category = CategoryPicker.SelectedItem?.ToString() ?? "Разное", 
-                Date = DateTime.Now
-            };
-
-            await _dbService.SaveTransactionAsync(newTransaction);
-
-            _transactions.Add(newTransaction);
-            UpdateBalance();
-            UpdateChart();
-
-            DescriptionEntry.Text = string.Empty;
-            AmountEntry.Text = string.Empty;
-            CategoryPicker.SelectedIndex = -1; // Сброс выбора
-        
-            DescriptionEntry.Unfocus();
-            AmountEntry.Unfocus();
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Ошибка БД", $"Не удалось сохранить: {ex.Message}", "OK");
-        }
+        if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+            await TryDeleteTransactionAsync(transaction);
     }
 
-    private async void OnDeleteTransactionClicked(object sender, EventArgs e)
+    private async Task TryDeleteTransactionAsync(Transaction transaction)
     {
-        // Получаем кнопку, которая была нажата
-        var button = sender as Button;
-    
-        // Получаем данные транзакции из BindingContext кнопки
-        var transaction = button?.BindingContext as Transaction;
-
-        if (transaction == null) return;
-
-        // Спрашиваем подтверждение (хороший тон UX)
-        bool confirm = await DisplayAlert("Подтверждение", $"Удалить запись: {transaction.Description}?", "Да", "Нет");
+        // ���������� ������������� (������� ��� UX)
+        bool confirm = await DisplayAlertAsync("�������������", $"������� ������: {transaction.Description}?", "��", "���");
 
         if (!confirm) return;
 
-        try 
+        try
         {
-            await _dbService.DeleteTransactionAsync(transaction.Id);
-        
-            // Удаляем из коллекции (UI обновится автоматически)
+            await _txService.DeleteTransactionAsync(transaction.Id);
+
             _transactions.Remove(transaction);
-        
-            UpdateBalance();
-            UpdateChart();
-        
-            await DisplayAlert("Успех", "Запись удалена", "OK");
+            RefreshAll();
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Ошибка", $"Не удалось удалить: {ex.Message}", "OK");
+            LogService.Error(ex, "Удаление операции");
+            await DisplayAlertAsync("Ошибка", $"Не удалось удалить: {ex.Message}", "OK");
         }
     }
 
-
-    public class MyBarChart : BarChart
+    private void OnRowPointerEntered(object? sender, PointerEventArgs e)
     {
-        protected override void GenerateDefaultSerie(IEnumerable<ChartEntry> value)
-        {
-            UpdateSeries(value.Select(e => new ChartSerie { Entries = [e], Name = e.Label, Color = e.Color }));
-        }
+        if (sender is Grid row)
+            foreach (var child in row.Children.OfType<Button>())
+                child.IsVisible = true;
     }
 
+    private void OnRowPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (sender is Grid row)
+            foreach (var child in row.Children.OfType<Button>())
+                child.IsVisible = false;
+    }
 }

@@ -41,4 +41,51 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- FamilyBudget brand palette -->
+    <Color x:Key="Bg">#F6F4EF</Color>
+    <Color x:Key="BgDark">#0E1613</Color>
+    <Color x:Key="Surface">#FFFFFF</Color>
+    <Color x:Key="SurfaceDark">#17221F</Color>
+    <Color x:Key="SurfaceBorder">#E9E5DC</Color>
+    <Color x:Key="SurfaceBorderDark">#243430</Color>
+    <Color x:Key="FieldBg">#FBFAF6</Color>
+    <Color x:Key="FieldBgDark">#12201B</Color>
+
+    <Color x:Key="InkPrimary">#1F2A2E</Color>
+    <Color x:Key="InkPrimaryDark">#E8EFEC</Color>
+    <Color x:Key="InkSecondary">#5B6B70</Color>
+    <Color x:Key="InkSecondaryDark">#9DB4AE</Color>
+    <Color x:Key="InkTertiary">#93A3A8</Color>
+    <Color x:Key="InkTertiaryDark">#6D837D</Color>
+
+    <Color x:Key="Teal900">#0B3D3A</Color>
+    <Color x:Key="Teal700">#0F766E</Color>
+    <Color x:Key="Teal500">#14B8A6</Color>
+
+    <Color x:Key="IncomeGreen">#0E9F6E</Color>
+    <Color x:Key="IncomeGreenDark">#34D399</Color>
+    <Color x:Key="ExpenseRed">#E5484D</Color>
+    <Color x:Key="ExpenseRedDark">#FF7B81</Color>
+
+    <!-- Category accents (list + chart share them) -->
+    <Color x:Key="CatProducts">#F59E0B</Color>
+    <Color x:Key="CatTransport">#0EA5E9</Color>
+    <Color x:Key="CatHousing">#8B5CF6</Color>
+    <Color x:Key="CatFun">#EC4899</Color>
+    <Color x:Key="CatHealth">#22C55E</Color>
+    <Color x:Key="CatOther">#64748B</Color>
+
+    <Color x:Key="CatProductsTint">#FEF3C7</Color>
+    <Color x:Key="CatTransportTint">#E0F2FE</Color>
+    <Color x:Key="CatHousingTint">#EDE9FE</Color>
+    <Color x:Key="CatFunTint">#FCE7F3</Color>
+    <Color x:Key="CatHealthTint">#DCFCE7</Color>
+    <Color x:Key="CatOtherTint">#E2E8F0</Color>
+
+    <LinearGradientBrush x:Key="HeroGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0B3D3A" Offset="0.0"/>
+        <GradientStop Color="#0F766E" Offset="0.55"/>
+        <GradientStop Color="#12968A" Offset="1.0"/>
+    </LinearGradientBrush>
 </ResourceDictionary>
