@@ -35,4 +35,10 @@
             Route="settings" />
     </TabBar>
 
+    <ShellContent x:Name="LockPageShell"
+                   Route="lock"
+                   ContentTemplate="{DataTemplate views:LockPage}"
+                   Shell.TabBarIsVisible="False"
+                   Shell.NavBarIsVisible="False"/>
+
 </Shell>

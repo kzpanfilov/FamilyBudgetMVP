@@ -51,6 +51,10 @@ namespace FamilyBudgetMVP.Views
 
             CategoriesList.ItemsSource = _categories.All;
             BuildSwatches();
+
+            var lockService = ServiceHelper.Get<LockService>();
+            LockSwitch.IsToggled = lockService.IsEnabled;
+            ChangePinButton.IsVisible = lockService.IsEnabled;
         }
 
         // --- Палитра выбора цвета ---
@@ -301,6 +305,94 @@ namespace FamilyBudgetMVP.Views
                 LogService.Error(ex, $"Удаление категории «{category.Name}»");
                 await DisplayAlertAsync("Ошибка БД", $"Не удалось удалить: {ex.Message}", "OK");
             }
+        }
+
+        private async void OnLockToggled(object? sender, ToggledEventArgs e)
+        {
+            var lockService = ServiceHelper.Get<LockService>();
+
+            if (e.Value)
+            {
+                // Включение — нужно задать PIN
+                var pin = await DisplayPromptAsync("Новый PIN-код",
+                    "Введите PIN-код (4-8 цифр):", "OK", "Отмена",
+                    keyboard: Keyboard.Numeric, maxLength: 8);
+
+                if (string.IsNullOrEmpty(pin) || pin.Length < 4)
+                {
+                    LockSwitch.IsToggled = false;
+                    return;
+                }
+
+                // Повторное подтверждение
+                var confirm = await DisplayPromptAsync("Подтвердите PIN",
+                    "Введите PIN-код ещё раз:", "OK", "Отмена",
+                    keyboard: Keyboard.Numeric, maxLength: 8);
+
+                if (pin != confirm)
+                {
+                    LockSwitch.IsToggled = false;
+                    await DisplayAlertAsync("Ошибка", "PIN-коды не совпадают.", "OK");
+                    return;
+                }
+
+                await lockService.SetPinAsync(pin);
+                lockService.IsEnabled = true;
+                ChangePinButton.IsVisible = true;
+            }
+            else
+            {
+                // Отключение — запросить текущий PIN
+                var pin = await DisplayPromptAsync("Отключение блокировки",
+                    "Введите текущий PIN-код:", "OK", "Отмена",
+                    keyboard: Keyboard.Numeric, maxLength: 8);
+
+                if (pin != null && await lockService.VerifyPinAsync(pin))
+                {
+                    lockService.IsEnabled = false;
+                    ChangePinButton.IsVisible = false;
+                }
+                else
+                {
+                    LockSwitch.IsToggled = true;
+                }
+            }
+        }
+
+        private async void OnChangePinClicked(object? sender, EventArgs e)
+        {
+            var lockService = ServiceHelper.Get<LockService>();
+
+            // Запрос текущий PIN
+            var oldPin = await DisplayPromptAsync("Текущий PIN",
+                "Введите текущий PIN-код:", "OK", "Отмена",
+                keyboard: Keyboard.Numeric, maxLength: 8);
+
+            if (oldPin == null || !await lockService.VerifyPinAsync(oldPin))
+            {
+                await DisplayAlertAsync("Ошибка", "Неверный текущий PIN-код.", "OK");
+                return;
+            }
+
+            var newPin = await DisplayPromptAsync("Новый PIN-код",
+                "Введите новый PIN-код (4-8 цифр):", "OK", "Отмена",
+                keyboard: Keyboard.Numeric, maxLength: 8);
+
+            if (string.IsNullOrEmpty(newPin) || newPin.Length < 4)
+                return;
+
+            var confirm = await DisplayPromptAsync("Подтвердите",
+                "Введите новый PIN-код ещё раз:", "OK", "Отмена",
+                keyboard: Keyboard.Numeric, maxLength: 8);
+
+            if (newPin != confirm)
+            {
+                await DisplayAlertAsync("Ошибка", "PIN-коды не совпадают.", "OK");
+                return;
+            }
+
+            await lockService.SetPinAsync(newPin);
+            await DisplayAlertAsync("Готово", "PIN-код успешно изменён.", "OK");
         }
     }
 }

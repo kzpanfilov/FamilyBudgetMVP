@@ -30,6 +30,8 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<BudgetService>();
         builder.Services.AddSingleton<NotificationService>();
+        builder.Services.AddSingleton<LockService>();
+        builder.Services.AddTransient<FamilyBudgetMVP.Views.LockPage>();
 
         // Модалка добавления — transient: каждый раз новый экземпляр с пустой формой
         builder.Services.AddTransient<FamilyBudgetMVP.Views.AddTransactionPage>();
