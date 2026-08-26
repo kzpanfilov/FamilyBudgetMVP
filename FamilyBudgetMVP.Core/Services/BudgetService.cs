@@ -46,6 +46,69 @@ namespace FamilyBudgetMVP.Services
                 Expense: -list.Where(t => t.Amount < 0).Sum(t => t.Amount));
         }
 
+        /// <summary>
+        /// Суммарный баланс за месяц с учётом повторяющихся операций.
+        /// Прошлые вхождения повторяющихся платежей проецируются на месяц,
+        /// чтобы баланс отражал реальные траты, а не только одну запись в БД.
+        /// </summary>
+        public BudgetSummary SummarizeMonth(IEnumerable<Transaction> transactions, int? year = null, int? month = null)
+        {
+            var now = DateTime.Today;
+            int y = year ?? now.Year;
+            int m = month ?? now.Month;
+
+            var monthStart = new DateTime(y, m, 1, 0, 0, 0, DateTimeKind.Utc);
+            var monthEnd = monthStart.AddMonths(1);
+
+            var list = transactions.ToList();
+            decimal totalBalance = 0, totalIncome = 0, totalExpense = 0;
+
+            foreach (var tx in list)
+            {
+                if (!tx.IsRecurring)
+                {
+                    // Обычная операция: считаем только если попадает в месяц
+                    if (tx.Date >= monthStart && tx.Date < monthEnd)
+                    {
+                        totalBalance += tx.Amount;
+                        if (tx.Amount > 0) totalIncome += tx.Amount;
+                        else totalExpense -= tx.Amount;
+                    }
+                }
+                else
+                {
+                    // Повторяющаяся: считаем базовое + все проецируемые вхождения в месяц
+                    // OccurrencesAfter генерирует только БУДУЩИЕ вхождения (после базовой даты),
+                    // поэтому базовое вхождение обрабатываем отдельно
+                    if (tx.Date >= monthStart && tx.Date < monthEnd)
+                    {
+                        totalBalance += tx.Amount;
+                        if (tx.Amount > 0) totalIncome += tx.Amount;
+                        else totalExpense -= tx.Amount;
+                    }
+
+                    // Проецируем будущие вхождения (от вчерашнего дня — чтобы захватить вчерашнее базовое)
+                    var fromExclusive = tx.Date.Date < monthStart.Date
+                        ? monthStart.Date.AddDays(-1)
+                        : tx.Date.Date;
+
+                    foreach (var occurrence in Recurrence.OccurrencesAfter(
+                        tx.Date, tx.RecurrenceType, tx.RecurEndDate,
+                        fromExclusive, monthEnd.AddDays(-1)))
+                    {
+                        if (occurrence >= monthStart && occurrence < monthEnd)
+                        {
+                            totalBalance += tx.Amount;
+                            if (tx.Amount > 0) totalIncome += tx.Amount;
+                            else totalExpense -= tx.Amount;
+                        }
+                    }
+                }
+            }
+
+            return new BudgetSummary(totalBalance, totalIncome, totalExpense);
+        }
+
         // --- Расходы по категориям за текущий месяц ---
 
         public List<ChartEntry> BuildMonthExpenseEntries(

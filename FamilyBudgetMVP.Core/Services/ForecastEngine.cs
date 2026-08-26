@@ -18,7 +18,7 @@ namespace FamilyBudgetMVP.Services
         /// <summary>Готовый текст для карточки прогноза на дашборде.</summary>
         public string RunwayText => RunsOut
             ? $"Денег хватит до {RunoutDate.ToString("d MMMM", Ru)}"
-            : "Денег хватит на весь срок";
+            : "Хватит на весь срок";
     }
 
     /// <summary>

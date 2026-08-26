@@ -134,13 +134,14 @@
                             <Border.Background><SolidColorBrush Color="#1FFFFFFF"/></Border.Background>
                             <Label x:Name="ExpenseLabel" Text="↓ 0 ₽" Style="{StaticResource HeroChipText}" />
                         </Border>
-                        <Border x:Name="RunwayChip"
-                                StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="10,6"
-                                IsVisible="False">
-                            <Border.Background><SolidColorBrush Color="#1FFFFFFF"/></Border.Background>
-                            <Label x:Name="RunwayLabel" Text="" Style="{StaticResource HeroChipText}" />
-                        </Border>
                     </HorizontalStackLayout>
+                    <Border x:Name="RunwayChip"
+                            StrokeThickness="0" StrokeShape="RoundRectangle 14" Padding="10,6"
+                            Margin="0,6,0,0" IsVisible="False"
+                            HorizontalOptions="Start">
+                        <Border.Background><SolidColorBrush Color="#1FFFFFFF"/></Border.Background>
+                        <Label x:Name="RunwayLabel" Text="" Style="{StaticResource HeroChipText}" LineBreakMode="TailTruncation" MaxLines="1" />
+                    </Border>
                 </VerticalStackLayout>
             </Grid>
         </Border>

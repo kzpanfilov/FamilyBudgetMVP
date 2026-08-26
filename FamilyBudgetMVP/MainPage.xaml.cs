@@ -282,7 +282,8 @@ public partial class MainPage : ContentPage
 
     private void UpdateBalance()
     {
-        var s = _budgetService.Summarize(_transactions);
+        var now = DateTime.Today;
+        var s = _budgetService.SummarizeMonth(_transactions, now.Year, now.Month);
 
         BalanceLabel.Text = $"{s.Balance:N2} ₽";
         IncomeLabel.Text = $"^  {s.Income:N0} ₽";
