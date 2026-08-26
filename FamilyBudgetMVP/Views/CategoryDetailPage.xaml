@@ -65,7 +65,7 @@
                                 </Grid.GestureRecognizers>
                                 <BoxView Grid.Column="0" WidthRequest="3" HeightRequest="30" CornerRadius="2"
                                          VerticalOptions="Center"
-                                         Color="{Binding Category, Converter={StaticResource HexToCategoryColor}}"/>
+                                         Color="{Binding Category, Converter={StaticResource CategoryColor}}"/>
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
                                     <Label Text="{Binding Description}" FontFamily="OpenSansSemibold" FontSize="14"

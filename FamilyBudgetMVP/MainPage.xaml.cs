@@ -223,44 +223,58 @@ public partial class MainPage : ContentPage
 
     private void OnChartTapped(object? sender, TappedEventArgs e)
     {
-        if (sender is not View container ||
-            container.Width <= 0 || container.Height <= 0)
-            return;
-
-        var innerChart = container switch
+        try
         {
-            ContentView cv => cv.Content as ChartView,
-            ChartView cv => cv,
-            _ => null
-        };
+            if (sender is not View container ||
+                container.Width <= 0 || container.Height <= 0)
+                return;
 
-        if (innerChart is not ChartView chartView ||
-            chartView.Chart is not CategoryBarChart barChart ||
-            chartView.CanvasSize.Width <= 0)
-            return;
+            var innerChart = container switch
+            {
+                ContentView cv => cv.Content as ChartView,
+                ChartView cv => cv,
+                _ => null
+            };
 
-        var position = e.GetPosition(container);
-        if (position is null)
-            return;
+            if (innerChart is not ChartView chartView ||
+                chartView.Chart is not CategoryBarChart barChart ||
+                chartView.CanvasSize.Width <= 0)
+                return;
 
-        float scale = (float)(chartView.CanvasSize.Width / container.Width);
-        string? category = barChart.HitTest((float)(position.Value.X * scale), (float)(position.Value.Y * scale));
+            var position = e.GetPosition(container);
+            if (position is null)
+                return;
 
-        if (category != null)
-            OpenCategoryDetail(category);
+            float scale = (float)(chartView.CanvasSize.Width / container.Width);
+            string? category = barChart.HitTest((float)(position.Value.X * scale), (float)(position.Value.Y * scale));
+
+            if (category != null)
+                Dispatcher.DispatchAsync(() => OpenCategoryDetail(category));
+        }
+        catch (Exception ex)
+        {
+            LogService.Error(ex, "OnChartTapped");
+        }
     }
 
-    private async void OpenCategoryDetail(string category)
+    private async Task OpenCategoryDetail(string category)
     {
-        var now = DateTime.Today;
-        var monthItems = _transactions
-            .Where(t => t.Amount < 0 &&
-                        t.Category == category &&
-                        t.Date.Year == now.Year &&
-                        t.Date.Month == now.Month)
-            .ToList();
+        try
+        {
+            var now = DateTime.Today;
+            var monthItems = _transactions
+                .Where(t => t.Amount < 0 &&
+                            t.Category == category &&
+                            t.Date.Year == now.Year &&
+                            t.Date.Month == now.Month)
+                .ToList();
 
-        await Navigation.PushModalAsync(new CategoryDetailPage(category, monthItems));
+            await Navigation.PushModalAsync(new CategoryDetailPage(category, monthItems));
+        }
+        catch (Exception ex)
+        {
+            LogService.Error(ex, "OpenCategoryDetail");
+        }
     }
 
     private void UpdateLimitWarnings(IReadOnlyList<Category> categories)
