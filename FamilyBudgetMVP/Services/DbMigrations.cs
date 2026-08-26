@@ -1,4 +1,4 @@
-using FamilyBudgetMVP.Models;
+﻿using FamilyBudgetMVP.Models;
 using SQLite;
 
 namespace FamilyBudgetMVP.Services
@@ -14,32 +14,70 @@ namespace FamilyBudgetMVP.Services
     /// </summary>
     public static class DbMigrations
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 3;
 
-        private static readonly object Gate = new();
+        private static readonly SemaphoreSlim _gateSlim = new(1, 1);
 
-        public static void Apply(SQLiteAsyncConnection db)
+        /// <summary>
+        /// Применяет недостающие миграции. Безопасно вызывать многократно.
+        /// Только async: синхронное ожидание на UI-потоке даёт дедлок.
+        /// </summary>
+        public static async Task ApplyAsync(SQLiteAsyncConnection db)
         {
-            // Инициализация может вызываться из двух коннектов (TransactionService,
-            // CategoryStore) — сериализуем, чтобы шаги не выполнялись параллельно
-            lock (Gate)
+            await _gateSlim.WaitAsync();
+            try
             {
-                int version = db.ExecuteScalarAsync<int>("PRAGMA user_version").Result;
+                int version = await db.ExecuteScalarAsync<int>("PRAGMA user_version");
 
                 // v1: базовые таблицы операций и категорий (историческая схема)
                 if (version < 1)
                 {
-                    db.CreateTableAsync<Transaction>().Wait();
-                    db.CreateTableAsync<Category>().Wait();
+                    await db.CreateTableAsync<Transaction>();
+                    await db.CreateTableAsync<Category>();
                 }
 
-                // Пример будущей миграции:
-                // if (version < 2)
-                //     db.ExecuteAsync("ALTER TABLE transactions ADD COLUMN Currency TEXT NOT NULL DEFAULT 'RUB'").Wait();
+                // v2: периодичность операций, источник, сценарии «что если»
+                if (version < 2)
+                {
+                    // CreateTable в v1 уже создаёт свежую базу с новыми колонками,
+                    // поэтому ALTER только при их отсутствии
+                    await EnsureColumnAsync(db, "Transaction", "Source", "TEXT NOT NULL DEFAULT ''");
+                    await EnsureColumnAsync(db, "Transaction", "RecurrenceType", "TEXT NOT NULL DEFAULT 'none'");
+                    await EnsureColumnAsync(db, "Transaction", "RecurEndDate", "TEXT NULL");
+                    await db.CreateTableAsync<Scenario>();
+                }
+
+                // v3: справочник льгот и субсидий
+                if (version < 3)
+                {
+                    await db.CreateTableAsync<Benefit>();
+                }
 
                 if (version < CurrentVersion)
-                    db.ExecuteAsync($"PRAGMA user_version = {CurrentVersion}").Wait();
+                    await db.ExecuteAsync($"PRAGMA user_version = {CurrentVersion}");
             }
+            finally
+            {
+                _gateSlim.Release();
+            }
+        }
+
+        private sealed class PragmaRow
+        {
+            public int cid { get; set; }
+            public string name { get; set; } = string.Empty;
+            public string type { get; set; } = string.Empty;
+        }
+
+        private static async Task EnsureColumnAsync(SQLiteAsyncConnection db, string table, string column, string definition)
+        {
+            // Transaction — зарезервированное слово; квотируем через [brackets].
+            // SELECT + pragma_table_info() вместо PRAGMA, потому что QueryAsync<T>
+            // оборачивает PRAGMA в SELECT … FROM, что ломает синтаксис.
+            var sql = $"SELECT * FROM pragma_table_info('{table}')";
+            var columns = await db.QueryAsync<PragmaRow>(sql);
+            if (!columns.Any(c => string.Equals(c.name, column, StringComparison.OrdinalIgnoreCase)))
+                await db.ExecuteAsync($"ALTER TABLE [{table}] ADD COLUMN {column} {definition}");
         }
     }
 }

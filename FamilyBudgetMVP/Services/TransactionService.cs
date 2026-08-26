@@ -1,4 +1,4 @@
-using FamilyBudgetMVP.Models;
+﻿using FamilyBudgetMVP.Models;
 using SQLite;
 using System.IO;
 
@@ -11,17 +11,38 @@ namespace FamilyBudgetMVP.Services
     public class TransactionService
     {
         private readonly SQLiteAsyncConnection _database;
+        private readonly SemaphoreSlim _initLock = new(1, 1);
+        private bool _initialized;
 
         // Путь к файлу базы данных в локальной папке приложения
         private static string DbPath => Path.Combine(FileSystem.AppDataDirectory, "budget.db");
 
         public TransactionService()
         {
-            // Создаем подключение. Если файла нет — он создастся.
+            // Только создание подключения. Вся работа с БД — в InitializeAsync(),
+            // чтобы не блокировать UI-поток (см. комментарий в CategoryStore).
             _database = new SQLiteAsyncConnection(DbPath);
+        }
 
-            // Схема доводится до актуальной версии миграциями
-            DbMigrations.Apply(_database);
+        /// <summary>Идемпотентная инициализация схемы (миграции).</summary>
+        public async Task InitializeAsync()
+        {
+            if (_initialized)
+                return;
+
+            await _initLock.WaitAsync();
+            try
+            {
+                if (_initialized)
+                    return;
+
+                await DbMigrations.ApplyAsync(_database);
+                _initialized = true;
+            }
+            finally
+            {
+                _initLock.Release();
+            }
         }
 
         public Task<List<Transaction>> GetTransactionsAsync()

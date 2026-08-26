@@ -1,4 +1,4 @@
-using SQLite;
+﻿using SQLite;
 
 namespace FamilyBudgetMVP.Models
 {
@@ -14,6 +14,19 @@ namespace FamilyBudgetMVP.Models
         public DateTime Date { get; set; } = DateTime.Now;
 
         public string Category { get; set; } = "Разное";
+
+        // Источник дохода (зарплата, пособие...) или место расхода; для истории = Description
+        public string Source { get; set; } = string.Empty;
+
+        // Периодичность: none | weekly | monthly | quarterly
+        public string RecurrenceType { get; set; } = Recurrence.None;
+
+        // До какой даты действует повторяющийся платёж (null — бессрочно)
+        public DateTime? RecurEndDate { get; set; }
+
+        public bool IsRecurring => RecurrenceType != Recurrence.None;
+
+        public bool IsIncome => Amount > 0;
 
         // Вспомогательное свойство для красивого вывода в UI
         public string FormattedAmount => (Amount >= 0 ? "+" : "") + Amount.ToString("N2") + " ₽";

@@ -1,4 +1,4 @@
-using Microcharts;
+﻿using Microcharts;
 using SkiaSharp;
 
 namespace FamilyBudgetMVP.Controls

@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.ScenariosPage"
+             Title="Сценарии">
+
+    <Grid RowDefinitions="Auto,*">
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout x:Name="ContentHost"
+                                 Padding="20,8"
+                                 Spacing="14"
+                                 HorizontalOptions="Center"
+                                 WidthRequest="{OnIdiom Desktop=560, Tablet=560, Phone=-1}">
+
+                <!-- Текущий прогноз -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="4">
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2"
+                                       Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                            <Label Text="Сейчас" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Label x:Name="NowRunwayLabel" FontFamily="OpenSansSemibold" FontSize="15"/>
+                        <Label x:Name="NowEndLabel" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Параметры сценария -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2"
+                                       Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                            <Label x:Name="FormTitle" Text="Новый сценарий" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Label Text="Название сценария" FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                        <Border Style="{StaticResource InputWrap}" Margin="0,-8,0,0">
+                            <Entry x:Name="NameEntry" Placeholder="Например: Ипотека"/>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="Изменение дохода, ₽/мес (±)" FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                                <Border Style="{StaticResource InputWrap}">
+                                    <Entry x:Name="IncomeChangeEntry" Placeholder="−15000 или 20000" Keyboard="Numeric"/>
+                                </Border>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="Изменение расхода, ₽/мес (+)" FontSize="12"
+                                       TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                                <Border Style="{StaticResource InputWrap}">
+                                    <Entry x:Name="ExpenseChangeEntry" Placeholder="8000" Keyboard="Numeric"/>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Разовая выплата / субсидия, ₽" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                            <Border Style="{StaticResource InputWrap}">
+                                <Entry x:Name="SubsidyEntry" Placeholder="450000" Keyboard="Numeric"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="Рассчитать"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Clicked="OnCalculateClicked"/>
+                            <Button Grid.Column="1" Text="Сохранить"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnSaveClicked"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Сравнение прогнозов -->
+                <Border x:Name="CompareCard" Style="{StaticResource Card}" IsVisible="False">
+                    <VerticalStackLayout Spacing="6">
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2"
+                                       Fill="{StaticResource IncomeGreen}" VerticalOptions="Center"/>
+                            <Label Text="Сравнение прогнозов" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        <Label x:Name="BaseLine" FontSize="13"/>
+                        <Label x:Name="ScenarioLine" FontFamily="OpenSansSemibold" FontSize="13"/>
+                        <Label x:Name="DeltaLine" FontFamily="OpenSansSemibold" FontSize="14"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Сохранённые сценарии -->
+                <HorizontalStackLayout Spacing="8" Margin="0,6,0,0">
+                    <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2"
+                               Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
+                    <Label Text="Сохранённые сценарии" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                </HorizontalStackLayout>
+                <VerticalStackLayout x:Name="ScenariosList" Spacing="8"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

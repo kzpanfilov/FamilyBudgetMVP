@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Models;
 using FamilyBudgetMVP.Services;
@@ -42,6 +42,10 @@ namespace FamilyBudgetMVP.Views
         {
             try
             {
+                // Гарантируем готовность БД и кэша категорий (идемпотентно)
+                await _txService.InitializeAsync();
+                await _categories.InitializeAsync();
+
                 _all = await _txService.GetTransactionsAsync();
                 ApplyFilters();
             }
@@ -116,53 +120,60 @@ namespace FamilyBudgetMVP.Views
 
             var list = TransactionsList;
 
+            // Плоские строки через DataTemplateSelector вместо IsGrouped:
+            // группировочный обработчик WinUI нестабилен (NRE в CVS)
+            var rows = new List<HistoryRow>();
+
             switch (SortPicker.SelectedIndex)
             {
                 case 1: // сначала старые
-                    list.IsGrouped = true;
-                    list.ItemsSource = ToObservable(_budgetService.GroupByDay(filtered, newestFirst: false));
+                    foreach (var g in _budgetService.GroupByDay(filtered, newestFirst: false))
+                        AddDayRows(rows, g);
                     break;
 
                 case 2: // по сумме: самые крупные расходы сверху
-                    list.IsGrouped = false;
-                    list.ItemsSource = ToObservableFlat(
-                        filtered.OrderBy(t => t.Amount).ThenByDescending(t => t.Date).ToList());
+                    rows.AddRange(filtered
+                        .OrderBy(t => t.Amount)
+                        .ThenByDescending(t => t.Date)
+                        .Select(t => new HistoryTransactionRow { Transaction = t }));
                     break;
 
                 default: // сначала новые
-                    list.IsGrouped = true;
-                    list.ItemsSource = ToObservable(_budgetService.GroupByDay(filtered));
+                    foreach (var g in _budgetService.GroupByDay(filtered))
+                        AddDayRows(rows, g);
                     break;
             }
+
+            list.ItemsSource = rows;
         }
 
-        private ObservableCollection<TransactionsByDay> ToObservable(List<TransactionsByDay> days)
+        private static void AddDayRows(List<HistoryRow> rows, TransactionsByDay group)
         {
-            var result = new ObservableCollection<TransactionsByDay>();
-            foreach (var day in days)
-                result.Add(day);
-            return result;
-        }
-
-        private ObservableCollection<Transaction> ToObservableFlat(List<Transaction> items)
-        {
-            var result = new ObservableCollection<Transaction>();
-            foreach (var item in items)
-                result.Add(item);
-            return result;
+            rows.Add(new HistoryDayHeader { Title = group.Title, DayTotalText = group.DayTotalText });
+            rows.AddRange(group.Items.Select(t => new HistoryTransactionRow { Transaction = t }));
         }
 
         // --- Удаление (как на дашборде) ---
 
+        private static Transaction? GetRowTransaction(object? sender)
+        {
+            return (sender as BindableObject)?.BindingContext switch
+            {
+                HistoryTransactionRow row => row.Transaction,
+                Transaction tx => tx,
+                _ => null
+            };
+        }
+
         private async void OnDeleteTransactionClicked(object? sender, EventArgs e)
         {
-            if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+            if (GetRowTransaction(sender) is { } transaction)
                 await TryDeleteTransactionAsync(transaction);
         }
 
         private async void OnDeleteTransactionTapped(object? sender, TappedEventArgs e)
         {
-            if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+            if (GetRowTransaction(sender) is { } transaction)
                 await TryDeleteTransactionAsync(transaction);
         }
 
@@ -196,6 +207,17 @@ namespace FamilyBudgetMVP.Views
             if (sender is Grid row)
                 foreach (var child in row.Children.OfType<Button>())
                     child.IsVisible = false;
+        }
+
+        // Тап по строке — редактирование операции
+        private async void OnRowTapped(object? sender, EventArgs e)
+        {
+            if (GetRowTransaction(sender) is { } transaction)
+            {
+                var page = ServiceHelper.Get<AddTransactionPage>();
+                page.SetupForEdit(transaction);
+                await Navigation.PushModalAsync(page);
+            }
         }
     }
 }

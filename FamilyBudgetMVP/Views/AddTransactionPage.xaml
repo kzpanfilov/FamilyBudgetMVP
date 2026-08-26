@@ -1,27 +1,56 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FamilyBudgetMVP.Views.AddTransactionPage"
              Title="Новая операция">
 
-    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Padding="24">
+    <Grid RowDefinitions="Auto,*,Auto">
 
-        <Border Style="{StaticResource Card}"
-                WidthRequest="{OnIdiom Desktop=440, Tablet=440, Phone=-1}"
-                Padding="24">
-            <Border.StrokeShape><RoundRectangle CornerRadius="28"/></Border.StrokeShape>
+        <!-- Шапка -->
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,*,Auto"
+              ColumnSpacing="10"
+              Padding="14,12"
+              HeightRequest="56">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#0B3D3A" Offset="0"/>
+                    <GradientStop Color="#12968A" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
 
-            <VerticalStackLayout Spacing="14">
+            <Button Grid.Column="0"
+                    Text="←"
+                    Clicked="OnCancelClicked"
+                    FontSize="14"
+                    Padding="10,4"
+                    MinimumWidthRequest="0"
+                    MinimumHeightRequest="0"
+                    VerticalOptions="Center"
+                    CornerRadius="8"
+                    BackgroundColor="#26FFFFFF"
+                    TextColor="White"/>
 
-                <HorizontalStackLayout Spacing="8">
-                    <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
-                    <Label Text="Новая операция" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
+            <Label Grid.Column="1" x:Name="HeaderTitle" Text="Новая операция"
+                   FontFamily="OpenSansSemibold" FontSize="17"
+                   TextColor="White" VerticalOptions="Center"/>
 
-                <!-- Тип операции -->
-                <HorizontalStackLayout Spacing="8">
-                    <Border x:Name="ExpenseChip" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
-                            StrokeShape="RoundRectangle 14" Padding="16,9" BackgroundColor="Transparent">
+            <Label Grid.Column="2" Text="🧾" FontSize="20" VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Содержимое -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="24,20"
+                                 Spacing="18"
+                                 HorizontalOptions="Center"
+                                 WidthRequest="{OnIdiom Desktop=560, Tablet=560, Phone=-1}">
+
+                <!-- Тип операции: две крупные плитки -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Border Grid.Column="0" x:Name="ExpenseChip"
+                            StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0" HeightRequest="76" BackgroundColor="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="Selection">
@@ -41,32 +70,55 @@
                                 </VisualStateGroup>
                             </VisualStateGroupList>
                         </VisualStateManager.VisualStateGroups>
-                        <Label x:Name="ExpenseChipLabel" Text="−  Расход" FontFamily="OpenSansSemibold" FontSize="14"
-                               TextColor="{StaticResource InkPrimary}">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroupList>
-                                    <VisualStateGroup x:Name="Selection">
-                                        <VisualState x:Name="Normal">
-                                            <VisualState.Setters>
-                                                <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                        <VisualState x:Name="Selected">
-                                            <VisualState.Setters>
-                                                <Setter Property="TextColor" Value="White"/>
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateGroupList>
-                            </VisualStateManager.VisualStateGroups>
-                        </Label>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="−" FontFamily="OpenSansSemibold" FontSize="24" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource ExpenseRed}, Dark={StaticResource ExpenseRedDark}}"/>
+                            <VerticalStackLayout Spacing="1">
+                                <Label x:Name="ExpenseChipLabel" Text="Расход" FontFamily="OpenSansSemibold" FontSize="15"
+                                       TextColor="{StaticResource InkPrimary}">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroupList>
+                                            <VisualStateGroup x:Name="Selection">
+                                                <VisualState x:Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState x:Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="White"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateGroupList>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Label>
+                                <Label Text="трата денег" FontSize="11"
+                                       TextColor="{StaticResource InkTertiary}">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroupList>
+                                            <VisualStateGroup x:Name="Selection">
+                                                <VisualState x:Name="Normal"/>
+                                                <VisualState x:Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="#E8F6F4"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateGroupList>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Label>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnExpenseTapped"/>
                         </Border.GestureRecognizers>
                     </Border>
 
-                    <Border x:Name="IncomeChip" StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
-                            StrokeShape="RoundRectangle 14" Padding="16,9" BackgroundColor="Transparent">
+                    <Border Grid.Column="1" x:Name="IncomeChip"
+                            StrokeThickness="1" Stroke="{StaticResource SurfaceBorder}"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="0" HeightRequest="76" BackgroundColor="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="Selection">
@@ -86,36 +138,99 @@
                                 </VisualStateGroup>
                             </VisualStateGroupList>
                         </VisualStateManager.VisualStateGroups>
-                        <Label x:Name="IncomeChipLabel" Text="+  Доход" FontFamily="OpenSansSemibold" FontSize="14"
-                               TextColor="{StaticResource InkPrimary}">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroupList>
-                                    <VisualStateGroup x:Name="Selection">
-                                        <VisualState x:Name="Normal">
-                                            <VisualState.Setters>
-                                                <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                        <VisualState x:Name="Selected">
-                                            <VisualState.Setters>
-                                                <Setter Property="TextColor" Value="White"/>
-                                            </VisualState.Setters>
-                                        </VisualState>
-                                    </VisualStateGroup>
-                                </VisualStateGroupList>
-                            </VisualStateManager.VisualStateGroups>
-                        </Label>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="+" FontFamily="OpenSansSemibold" FontSize="24" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource IncomeGreen}, Dark={StaticResource IncomeGreenDark}}"/>
+                            <VerticalStackLayout Spacing="1">
+                                <Label x:Name="IncomeChipLabel" Text="Доход" FontFamily="OpenSansSemibold" FontSize="15"
+                                       TextColor="{StaticResource InkPrimary}">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroupList>
+                                            <VisualStateGroup x:Name="Selection">
+                                                <VisualState x:Name="Normal">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="{StaticResource InkPrimary}"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                                <VisualState x:Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="White"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateGroupList>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Label>
+                                <Label Text="поступление" FontSize="11"
+                                       TextColor="{StaticResource InkTertiary}">
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroupList>
+                                            <VisualStateGroup x:Name="Selection">
+                                                <VisualState x:Name="Normal"/>
+                                                <VisualState x:Name="Selected">
+                                                    <VisualState.Setters>
+                                                        <Setter Property="TextColor" Value="#E8F6F4"/>
+                                                    </VisualState.Setters>
+                                                </VisualState>
+                                            </VisualStateGroup>
+                                        </VisualStateGroupList>
+                                    </VisualStateManager.VisualStateGroups>
+                                </Label>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnIncomeTapped"/>
                         </Border.GestureRecognizers>
                     </Border>
-                </HorizontalStackLayout>
+                </Grid>
+
+                <!-- Частые траты: предзаполненные суммы можно менять -->
+                <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center">
+                    <Button Text="🍞 Хлеб · 60"
+                            Style="{StaticResource QuickChip}"
+                            Margin="0,0,6,6"
+                            CommandParameter="Хлеб|60|Продукты" Clicked="OnQuickExpense"/>
+                    <Button Text="🥛 Молоко · 90"
+                            Style="{StaticResource QuickChip}"
+                            Margin="0,0,6,6"
+                            CommandParameter="Молоко|90|Продукты" Clicked="OnQuickExpense"/>
+                    <Button Text="🚌 Автобус · 40"
+                            Style="{StaticResource QuickChip}"
+                            Margin="0,0,6,6"
+                            CommandParameter="Автобус|40|Транспорт" Clicked="OnQuickExpense"/>
+                    <Button Text="💊 Лекарства · 500"
+                            Style="{StaticResource QuickChip}"
+                            Margin="0,0,6,6"
+                            CommandParameter="Лекарства|500|Здоровье" Clicked="OnQuickExpense"/>
+                </FlexLayout>
+
+                <!-- Сумма -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Сумма" Style="{StaticResource SectionTitle}" FontSize="13"/>
+                    <Border Style="{StaticResource InputWrap}" Padding="16,10">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry Grid.Column="0" x:Name="AmountEntry"
+                                   Placeholder="0"
+                                   Keyboard="Numeric"
+                                   ReturnType="Done"
+                                   FontFamily="OpenSansSemibold" FontSize="24"
+                                   TextChanged="OnAmountTextChanged"
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                            <Label Grid.Column="1" Text="₽" FontFamily="OpenSansSemibold" FontSize="22"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </Grid>
+                    </Border>
+                    <Label x:Name="AmountError" Text="Сумма должна быть больше нуля" IsVisible="False"
+                           FontSize="11" Margin="6,0,0,0" TextColor="{StaticResource ExpenseRed}"/>
+                </VerticalStackLayout>
 
                 <!-- Описание -->
-                <VerticalStackLayout Spacing="4">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Описание" Style="{StaticResource SectionTitle}" FontSize="13"/>
                     <Border Style="{StaticResource InputWrap}">
                         <Entry x:Name="DescriptionEntry"
-                               Placeholder="Описание, например: Продукты из Пятёрочки"
+                               Placeholder="Например: Продукты из Пятёрочки"
                                ReturnType="Done"
                                TextChanged="OnDescriptionTextChanged"
                                PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
@@ -124,38 +239,48 @@
                            FontSize="11" Margin="6,0,0,0" TextColor="{StaticResource ExpenseRed}"/>
                 </VerticalStackLayout>
 
-                <!-- Сумма и категория -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <VerticalStackLayout Grid.Column="0" Spacing="4">
-                        <Border Style="{StaticResource InputWrap}">
-                            <Entry x:Name="AmountEntry"
-                                   Placeholder="Сумма, ₽"
-                                   Keyboard="Numeric"
-                                   ReturnType="Done"
-                                   TextChanged="OnAmountTextChanged"
-                                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
-                        </Border>
-                        <Label x:Name="AmountError" Text="Сумма должна быть больше нуля" IsVisible="False"
-                               FontSize="11" Margin="6,0,0,0" TextColor="{StaticResource ExpenseRed}"/>
-                    </VerticalStackLayout>
-
-                    <Border Grid.Column="1" Style="{StaticResource InputWrap}" VerticalOptions="Start">
+                <!-- Категория -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Категория" Style="{StaticResource SectionTitle}" FontSize="13"/>
+                    <Border Style="{StaticResource InputWrap}">
                         <!-- список категорий задается в code-behind из CategoryStore -->
-                        <Picker x:Name="CategoryPicker" Title="Категория" FontSize="14"/>
+                        <Picker x:Name="CategoryPicker" Title="Выберите категорию" FontSize="14"/>
                     </Border>
-                </Grid>
+                </VerticalStackLayout>
 
-                <!-- Кнопки -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Button Grid.Column="0" Text="Отмена"
-                            Style="{StaticResource GhostDelete}"
-                            Clicked="OnCancelClicked"/>
-                    <Button Grid.Column="1" Text="Сохранить"
-                            Style="{StaticResource PrimaryButton}"
-                            Clicked="OnSaveClicked"/>
-                </Grid>
+                <!-- Повторение -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Повторение" Style="{StaticResource SectionTitle}" FontSize="13"/>
+                    <Border Style="{StaticResource InputWrap}">
+                        <!-- пункты заполняются в code-behind из Recurrence.All -->
+                        <Picker x:Name="RecurrencePicker" FontSize="14" SelectedIndexChanged="OnRecurrenceChanged"/>
+                    </Border>
+                    <Border x:Name="RecurEndWrap" Style="{StaticResource InputWrap}" IsVisible="False">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="До:" VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                            <DatePicker Grid.Column="1" x:Name="RecurEndDatePicker" FontSize="14"/>
+                        </Grid>
+                    </Border>
+                </VerticalStackLayout>
 
             </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Панель действий -->
+        <Border Grid.Row="2" StrokeThickness="0" Padding="24,14"
+                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#10191C}">
+            <Border.StrokeShape><RoundRectangle CornerRadius="0"/></Border.StrokeShape>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10"
+                  HorizontalOptions="Center"
+                  WidthRequest="{OnIdiom Desktop=560, Tablet=560, Phone=-1}">
+                <Button Grid.Column="0" Text="Отмена"
+                        Style="{StaticResource SecondaryButton}"
+                        Clicked="OnCancelClicked"/>
+                <Button Grid.Column="1" Text="Сохранить"
+                        Style="{StaticResource PrimaryButton}"
+                        Clicked="OnSaveClicked"/>
+            </Grid>
         </Border>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

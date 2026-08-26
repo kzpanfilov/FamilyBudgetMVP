@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Models;
 using FamilyBudgetMVP.Services;
@@ -35,9 +35,19 @@ namespace FamilyBudgetMVP.Views
             InitializeComponent();
         }
 
-        protected override void OnAppearing()
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            try
+            {
+                // Кэш категорий должен быть готов до показа списка и палитры
+                await _categories.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                LogService.Error(ex, "Настройки: инициализация");
+            }
 
             CategoriesList.ItemsSource = _categories.All;
             BuildSwatches();

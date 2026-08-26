@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Services;
 using Microsoft.Maui.Controls;

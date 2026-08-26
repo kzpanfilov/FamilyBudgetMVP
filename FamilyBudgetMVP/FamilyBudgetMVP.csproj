@@ -28,10 +28,10 @@
         <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
         <!-- Display name -->
-        <ApplicationTitle>FamilyBudgetMVP</ApplicationTitle>
+        <ApplicationTitle>Бюджет+</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.familybudgetmvp</ApplicationId>
+        <ApplicationId>tech.kuzyacrudit.familybudget</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -45,32 +45,38 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+        <!-- Android signing for release -->
+        <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release'">familybudget-release.keystore</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias Condition="'$(Configuration)' == 'Release'">familybudget</AndroidSigningKeyAlias>
+        <AndroidSigningStorePass Condition="'$(Configuration)' == 'Release'">familybudget1</AndroidSigningStorePass>
+        <AndroidSigningKeyPass Condition="'$(Configuration)' == 'Release'">familybudget1</AndroidSigningKeyPass>
     </PropertyGroup>
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0B3D3A"/>
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#0B3D3A" />
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0B3D3A" BaseSize="128,128"/>
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0B3D3A" BaseSize="128,128" />
 
         <!-- Images -->
-        <MauiImage Include="Resources\Images\*"/>
-        <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185"/>
+        <MauiImage Include="Resources\Images\*" />
+        <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 
         <!-- Custom Fonts -->
-        <MauiFont Include="Resources\Fonts\*"/>
+        <MauiFont Include="Resources\Fonts\*" />
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microcharts" Version="2.0.0.3" />
         <PackageReference Include="Microcharts.Core" Version="2.0.0.3" />
         <PackageReference Include="Microcharts.Maui" Version="2.0.0.3" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+        <PackageReference Include="Plugin.LocalNotification" Version="11.2.0" />
         <PackageReference Include="SkiaSharp" Version="4.151.1" />
         <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="4.151.1" />
         <PackageReference Include="SkiaSharp.Views.Maui.Core" Version="4.151.1" />

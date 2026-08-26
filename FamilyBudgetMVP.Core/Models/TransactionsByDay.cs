@@ -1,4 +1,4 @@
-namespace FamilyBudgetMVP.Models
+﻿namespace FamilyBudgetMVP.Models
 {
     /// <summary>Группа истории операций за один день.</summary>
     public class TransactionsByDay

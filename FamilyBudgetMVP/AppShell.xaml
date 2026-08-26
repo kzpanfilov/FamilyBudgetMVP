@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="FamilyBudgetMVP.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:FamilyBudgetMVP"
     xmlns:views="clr-namespace:FamilyBudgetMVP.Views"
     Shell.FlyoutBehavior="Disabled"
-    Title="Мой бюджет">
+    Title="Бюджет+">
 
     <TabBar>
         <ShellContent
@@ -18,6 +18,16 @@
             Title="История"
             ContentTemplate="{DataTemplate views:HistoryPage}"
             Route="history" />
+
+        <ShellContent
+            Title="Сценарии"
+            ContentTemplate="{DataTemplate views:ScenariosPage}"
+            Route="scenarios" />
+
+        <ShellContent
+            Title="Льготы"
+            ContentTemplate="{DataTemplate views:BenefitsPage}"
+            Route="benefits" />
 
         <ShellContent
             Title="Настройки"

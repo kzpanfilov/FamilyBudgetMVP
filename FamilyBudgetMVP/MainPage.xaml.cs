@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using FamilyBudgetMVP.Controls;
 using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Models;
@@ -24,7 +24,6 @@ public partial class MainPage : ContentPage
     private readonly CategoryStore _categories;
 
     private ObservableCollection<Transaction> _transactions = new();
-    private readonly ObservableCollection<TransactionsByDay> _history = new();
 
     public MainPage(TransactionService txService, BudgetService budgetService, CategoryStore categories)
     {
@@ -33,9 +32,7 @@ public partial class MainPage : ContentPage
         _budgetService = budgetService;
         _categories = categories;
 
-        TransactionsList.ItemsSource = _history;
-
-        // ��������� ����� ���������� � ���������� � ������������ ����� �������
+        // График и история обновляются при изменении категорий
         _categories.Changed += RefreshAll;
 
         if (Application.Current != null)
@@ -71,6 +68,10 @@ public partial class MainPage : ContentPage
     {
         try
         {
+            // Гарантируем готовность БД и кэша категорий (идемпотентно)
+            await _txService.InitializeAsync();
+            await _categories.InitializeAsync();
+
             var data = await _txService.GetTransactionsAsync();
 
             _transactions.Clear();
@@ -91,16 +92,46 @@ public partial class MainPage : ContentPage
     // ������ ����� ���������� ����� ��������� ������
     private void RefreshAll()
     {
-        UpdateBalance();
-        RebuildHistory();
-        UpdateCharts();
+        // Changed может прийти из фонового прогрева сервисов (Task.Run в MauiProgram) —
+        // мутации UI-коллекций обязаны идти через диспетчер
+        if (!Dispatcher.IsDispatchRequired)
+        {
+            UpdateBalance();
+            RebuildHistory();
+            UpdateCharts();
+            return;
+        }
+
+        Dispatcher.Dispatch(() =>
+        {
+            UpdateBalance();
+            RebuildHistory();
+            UpdateCharts();
+        });
     }
 
     private void RebuildHistory()
     {
-        _history.Clear();
-        foreach (var day in _budgetService.GroupByDay(_transactions))
-            _history.Add(day);
+        // Плоский список строк (заголовок дня + операции) вместо IsGrouped:
+        // группировочный обработчик WinUI нестабилен, а плоский список
+        // заодно позволяет скроллить и выбирать строки без сюрпризов
+        var rows = new List<HistoryRow>();
+
+        foreach (var group in _budgetService.GroupByDay(_transactions))
+        {
+            rows.Add(new HistoryDayHeader
+            {
+                Title = group.Title,
+                DayTotalText = group.DayTotalText
+            });
+
+            foreach (var t in group.Items)
+                rows.Add(new HistoryTransactionRow { Transaction = t });
+        }
+
+        // BindableLayout на StackLayout: без ItemsView-хендлера WinUI,
+        // страница прокручивается целиком
+        BindableLayout.SetItemsSource(TransactionsList, rows);
     }
 
     private void UpdateCharts()
@@ -117,7 +148,7 @@ public partial class MainPage : ContentPage
         {
             ChartView.Content = new Label
             {
-                Text = "??  ��� �������� �� �����",
+                Text = "📊 Расходов за этот месяц нет",
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 FontFamily = "OpenSansSemibold",
@@ -164,7 +195,7 @@ public partial class MainPage : ContentPage
         {
             DynamicsView.Content = new Label
             {
-                Text = "??  ��� �������� �� ��������� 30 ����",
+                Text = "📊 Расходов за последние 30 дней нет",
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 FontFamily = "OpenSansSemibold",
@@ -235,37 +266,52 @@ public partial class MainPage : ContentPage
         }
 
         LimitWarningCard.IsVisible = true;
-        LimitWarningLabel.Text = "?  " + string.Join("    �    ", issues.Select(s =>
+        LimitWarningLabel.Text = "⚠  " + string.Join("  ·  ", issues.Select(s =>
             s.Exceeded
-                ? $"{s.Category}: {s.Spent:N0} �� {s.Limit:N0} ? � ���������� �� {s.Spent - s.Limit:N0} ?"
-                : $"{s.Category}: {s.Spent:N0} �� {s.Limit:N0} ? � ������ � ������"));
+                ? $"{s.Category}: {s.Spent:N0} из {s.Limit:N0} ₽ — превышение на {s.Spent - s.Limit:N0} ₽"
+                : $"{s.Category}: {s.Spent:N0} из {s.Limit:N0} ₽ — в пределах лимита"));
     }
 
     private void UpdateBalance()
     {
         var s = _budgetService.Summarize(_transactions);
 
-        BalanceLabel.Text = $"{s.Balance:N2} ?";
-        IncomeLabel.Text = $"^  {s.Income:N0} ?";
-        ExpenseLabel.Text = $"v  {s.Expense:N0} ?";
+        BalanceLabel.Text = $"{s.Balance:N2} ₽";
+        IncomeLabel.Text = $"^  {s.Income:N0} ₽";
+        ExpenseLabel.Text = $"v  {s.Expense:N0} ₽";
+
+        // Прогноз «до какой даты хватит денег» (ТЗ MVP)
+        var forecast = ForecastEngine.Project(_transactions, DateTime.Today);
+        RunwayLabel.Text = forecast.RunwayText;
+        RunwayChip.IsVisible = true;
+    }
+
+    private static Transaction? GetRowTransaction(object? sender)
+    {
+        return (sender as BindableObject)?.BindingContext switch
+        {
+            HistoryTransactionRow row => row.Transaction,
+            Transaction tx => tx,
+            _ => null
+        };
     }
 
     private async void OnDeleteTransactionClicked(object? sender, EventArgs e)
     {
-        if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+        if (GetRowTransaction(sender) is { } transaction)
             await TryDeleteTransactionAsync(transaction);
     }
 
     private async void OnDeleteTransactionTapped(object? sender, TappedEventArgs e)
     {
-        if ((sender as BindableObject)?.BindingContext is Transaction transaction)
+        if (GetRowTransaction(sender) is { } transaction)
             await TryDeleteTransactionAsync(transaction);
     }
 
     private async Task TryDeleteTransactionAsync(Transaction transaction)
     {
         // ���������� ������������� (������� ��� UX)
-        bool confirm = await DisplayAlertAsync("�������������", $"������� ������: {transaction.Description}?", "��", "���");
+        bool confirm = await DisplayAlertAsync("Подтверждение", $"Удалить запись: {transaction.Description}?", "Да", "Нет");
 
         if (!confirm) return;
 
@@ -295,5 +341,19 @@ public partial class MainPage : ContentPage
         if (sender is Grid row)
             foreach (var child in row.Children.OfType<Button>())
                 child.IsVisible = false;
+    }
+
+    // Тап по строке истории — редактирование операции
+    private async void OnRowTapped(object? sender, EventArgs e)
+    {
+        if ((sender as BindableObject)?.BindingContext is HistoryTransactionRow { Transaction: { } tx })
+            await OpenEditAsync(tx);
+    }
+
+    private async Task OpenEditAsync(Transaction tx)
+    {
+        var page = ServiceHelper.Get<AddTransactionPage>();
+        page.SetupForEdit(tx);
+        await Navigation.PushModalAsync(page);
     }
 }

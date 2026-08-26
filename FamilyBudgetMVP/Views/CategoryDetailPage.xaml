@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="FamilyBudgetMVP.Views.CategoryDetailPage"
@@ -8,6 +8,7 @@
 
         <Border Style="{StaticResource Card}"
                 WidthRequest="{OnIdiom Desktop=480, Tablet=480, Phone=-1}"
+                HeightRequest="{OnIdiom Desktop=600, Tablet=600, Phone=-1}"
                 Padding="0">
             <Border.StrokeShape><RoundRectangle CornerRadius="28"/></Border.StrokeShape>
 
@@ -59,6 +60,9 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="12,7">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnRowTapped"/>
+                                </Grid.GestureRecognizers>
                                 <BoxView Grid.Column="0" WidthRequest="3" HeightRequest="30" CornerRadius="2"
                                          VerticalOptions="Center"
                                          Color="{Binding Category, Converter={StaticResource HexToCategoryColor}}"/>
@@ -90,5 +94,10 @@
                 </CollectionView>
             </Grid>
         </Border>
+
+        <!-- Закрытие модального экрана -->
+        <Button Text="←  Назад"
+                Clicked="OnBackClicked"
+                Margin="0,16,0,0"/>
     </VerticalStackLayout>
 </ContentPage>

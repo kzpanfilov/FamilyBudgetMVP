@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 
 namespace FamilyBudgetMVP.Services
 {
@@ -9,6 +9,9 @@ namespace FamilyBudgetMVP.Services
     public static class LogService
     {
         private static readonly object Gate = new();
+
+        /// <summary>UTF-8 with BOM — чтобы логи корректно открывались в любом просмотрщике.</summary>
+        private static readonly Encoding Utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
         public static void Error(Exception ex, string context)
             => Write("ERROR", $"{context}: {ex}");
@@ -30,7 +33,7 @@ namespace FamilyBudgetMVP.Services
                     File.AppendAllText(
                         Path.Combine(dir, $"app-{DateTime.Now:yyyy-MM}.log"),
                         line,
-                        Encoding.UTF8);
+                        Utf8Bom);
                 }
             }
             catch

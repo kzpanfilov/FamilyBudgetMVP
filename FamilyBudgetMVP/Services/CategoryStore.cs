@@ -1,4 +1,4 @@
-using FamilyBudgetMVP.Models;
+﻿using FamilyBudgetMVP.Models;
 using Microsoft.Maui.Graphics;
 using SQLite;
 using System.IO;
@@ -14,6 +14,8 @@ namespace FamilyBudgetMVP.Services
     public class CategoryStore : ICategoryPalette
     {
         private readonly SQLiteAsyncConnection _database;
+        private readonly SemaphoreSlim _initLock = new(1, 1);
+        private bool _initialized;
 
         // Одна база на приложение — общая с TransactionService
         private static string DbPath => Path.Combine(FileSystem.AppDataDirectory, "budget.db");
@@ -25,12 +27,37 @@ namespace FamilyBudgetMVP.Services
 
         public CategoryStore()
         {
+            // Только лёгкие операции: вся работа с БД — в InitializeAsync().
+            // Блокировать (.Wait/.Result) нельзя: вызов происходит на UI-потоке,
+            // и await внутри методов встанет в очередь недоступного диспетчера.
             _database = new SQLiteAsyncConnection(DbPath);
+        }
 
-            // Схема доводится до актуальной версии миграциями
-            DbMigrations.Apply(_database);
-            SeedIfEmptyAsync().Wait();
-            ReloadAsync().Wait();
+        /// <summary>
+        /// Идемпотентная инициализация: миграции схемы, сид дефолтов, загрузка кэша.
+        /// Вызывать перед первым использованием (страницы делают это в OnAppearing).
+        /// </summary>
+        public async Task InitializeAsync()
+        {
+            if (_initialized)
+                return;
+
+            await _initLock.WaitAsync();
+            try
+            {
+                if (_initialized)
+                    return;
+
+                await DbMigrations.ApplyAsync(_database);
+                await SeedIfEmptyAsync();
+                await ReloadAsync();
+
+                _initialized = true;
+            }
+            finally
+            {
+                _initLock.Release();
+            }
         }
 
         private async Task SeedIfEmptyAsync()

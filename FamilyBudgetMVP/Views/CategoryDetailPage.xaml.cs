@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using FamilyBudgetMVP.Helpers;
 using FamilyBudgetMVP.Models;
 using FamilyBudgetMVP.Services;
@@ -34,6 +34,22 @@ namespace FamilyBudgetMVP.Views
             };
 
             ItemsList.ItemsSource = monthItems.OrderByDescending(t => t.Date).ToList();
+        }
+
+        private async void OnBackClicked(object? sender, EventArgs e)
+        {
+            await Navigation.PopModalAsync();
+        }
+
+        // Тап по строке — редактирование операции
+        private async void OnRowTapped(object? sender, EventArgs e)
+        {
+            if ((sender as BindableObject)?.BindingContext is Transaction tx)
+            {
+                var page = ServiceHelper.Get<AddTransactionPage>();
+                page.SetupForEdit(tx);
+                await Navigation.PushModalAsync(page);
+            }
         }
 
         private static string OperationsCountText(int count) => count switch
