@@ -171,7 +171,14 @@ public partial class MainPage : ContentPage
                 LegendOption = SeriesLegendOption.None
             };
 
-            ChartView.Content = CreateTappableChart(barChart, OnChartTapped);
+            ChartView.Content = CreateTappableChart(barChart);
+
+            if (ChartView.GestureRecognizers.Count == 0)
+            {
+                var tapGesture = new TapGestureRecognizer();
+                tapGesture.Tapped += OnChartTapped;
+                ChartView.GestureRecognizers.Add(tapGesture);
+            }
         }
 
         // �������� ������ �������� �� ����
@@ -204,38 +211,39 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private ChartView CreateTappableChart(Chart chart, EventHandler<TappedEventArgs>? tapped = null)
+    private ChartView CreateTappableChart(Chart chart)
     {
-        var chartView = new ChartView
+        return new ChartView
         {
             Chart = chart,
             HorizontalOptions = LayoutOptions.Fill,
             VerticalOptions = LayoutOptions.Fill
         };
-
-        if (tapped != null)
-        {
-            var tapGesture = new TapGestureRecognizer();
-            tapGesture.Tapped += tapped;
-            chartView.GestureRecognizers.Add(tapGesture);
-        }
-
-        return chartView;
     }
 
     private void OnChartTapped(object? sender, TappedEventArgs e)
     {
-        if (sender is not ChartView chartView ||
-            chartView.Chart is not CategoryBarChart barChart ||
-            chartView.Width <= 0 || chartView.CanvasSize.Width <= 0)
+        if (sender is not View container ||
+            container.Width <= 0 || container.Height <= 0)
             return;
 
-        var position = e.GetPosition(chartView);
+        var innerChart = container switch
+        {
+            ContentView cv => cv.Content as ChartView,
+            ChartView cv => cv,
+            _ => null
+        };
+
+        if (innerChart is not ChartView chartView ||
+            chartView.Chart is not CategoryBarChart barChart ||
+            chartView.CanvasSize.Width <= 0)
+            return;
+
+        var position = e.GetPosition(container);
         if (position is null)
             return;
 
-        // ��������� ���������� ������������� � ������� ����� SkiaSharp
-        float scale = (float)(chartView.CanvasSize.Width / chartView.Width);
+        float scale = (float)(chartView.CanvasSize.Width / container.Width);
         string? category = barChart.HitTest((float)(position.Value.X * scale), (float)(position.Value.Y * scale));
 
         if (category != null)
