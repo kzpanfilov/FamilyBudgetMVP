@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;">
+    <!-- Сплэш: тот же знак, что и в иконке (фон задаётся цветом в csproj) -->
+    <rect x="114" y="240" width="52" height="90"  rx="16" style="fill:#FFFFFF;"/>
+    <rect x="202" y="180" width="52" height="150" rx="16" style="fill:#FFFFFF;"/>
+    <rect x="290" y="120" width="52" height="210" rx="16" style="fill:#99F6E4;"/>
+    <circle cx="316" cy="72" r="30" style="fill:none;stroke:#FFFFFF;stroke-width:18px;"/>
+</svg>

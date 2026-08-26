@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FamilyBudgetMVP.Views.LockPage"
+             Title="Бюджет+"
+             Shell.NavBarIsVisible="False">
+
+    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20" Padding="40">
+
+        <Label Text="🔒" FontSize="64" HorizontalOptions="Center"/>
+        <Label Text="Бюджет+" FontSize="28" FontFamily="OpenSansSemibold" HorizontalOptions="Center"
+               TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"/>
+        <Label x:Name="ErrorLabel" Text="" FontSize="13" HorizontalOptions="Center"
+               TextColor="{StaticResource ExpenseRed}"/>
+
+        <Border Style="{StaticResource InputWrap}" WidthRequest="200" HorizontalOptions="Center">
+            <Entry x:Name="PinEntry"
+                   Placeholder="PIN-код"
+                   IsPassword="True"
+                   Keyboard="Numeric"
+                   MaxLength="8"
+                   HorizontalTextAlignment="Center"
+                   FontSize="20"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+        </Border>
+
+        <Button x:Name="UnlockButton"
+                Text="Войти"
+                Style="{StaticResource PrimaryButton}"
+                WidthRequest="200"
+                HorizontalOptions="Center"
+                Clicked="OnUnlockClicked"/>
+    </VerticalStackLayout>
+</ContentPage>

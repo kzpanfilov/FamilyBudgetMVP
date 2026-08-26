@@ -1,5 +1,38 @@
-bin/
-obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
+# Rider (JetBrains)
+.idea/
+*.userprefs
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Build results
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/[Bb]uild/
+
+# NuGet
+packages/
+project.assets.json
+*.nuget.props
+
+# Test & coverage results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+
+# Local databases (SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# Misc
+.DS_Store
+Thumbs.db
+.env
+secrets.json

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp"
+    android:background="#FF0B3D3A">
+
+    <TextView
+        android:id="@+id/widget_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="💰 Бюджет+"
+        android:textColor="#FFFFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/widget_balance_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Баланс"
+        android:textColor="#B0FFFFFF"
+        android:textSize="11sp"
+        android:layout_below="@id/widget_title"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/widget_balance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 ₽"
+        android:textColor="#FF4ECDC4"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_below="@id/widget_balance_label"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:id="@+id/widget_expense_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Расходы"
+        android:textColor="#B0FFFFFF"
+        android:textSize="11sp"
+        android:layout_below="@id/widget_balance"
+        android:layout_marginTop="6dp" />
+
+    <TextView
+        android:id="@+id/widget_expense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 ₽"
+        android:textColor="#FFFF6B6B"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_below="@id/widget_expense_label"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:id="@+id/widget_income_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Доходы"
+        android:textColor="#B0FFFFFF"
+        android:textSize="11sp"
+        android:layout_alignTop="@id/widget_expense_label"
+        android:layout_alignEnd="@id/widget_title" />
+
+    <TextView
+        android:id="@+id/widget_income"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 ₽"
+        android:textColor="#FF22C55E"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_below="@id/widget_income_label"
+        android:layout_marginTop="2dp"
+        android:layout_alignEnd="@id/widget_expense" />
+
+    <TextView
+        android:id="@+id/widget_updated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Обновлено: --:--"
+        android:textColor="#80FFFFFF"
+        android:textSize="10sp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>
