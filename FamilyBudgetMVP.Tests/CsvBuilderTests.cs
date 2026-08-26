@@ -66,5 +66,42 @@ namespace FamilyBudgetMVP.Tests
 
             Assert.Contains(";Доход;", line);
         }
+
+        [Fact]
+        public void Empty_Description_Produces_Empty_Field()
+        {
+            var tx = new Transaction
+            {
+                Date = new DateTime(2026, 1, 1, 9, 0, 0),
+                Amount = 100,
+                Category = "Разное",
+                Description = ""
+            };
+
+            var line = CsvBuilder.BuildTransactionsCsv(new[] { tx })
+                .Split('\n')[1]
+                .TrimEnd('\r');
+
+            // Пустое описание — последнее поле
+            Assert.EndsWith(";", line);
+        }
+
+        [Fact]
+        public void Description_With_Comma_Not_Quoted()
+        {
+            var tx = new Transaction
+            {
+                Date = new DateTime(2026, 1, 1, 9, 0, 0),
+                Amount = 50,
+                Category = "Разное",
+                Description = "кофе, чай"
+            };
+
+            var line = CsvBuilder.BuildTransactionsCsv(new[] { tx })
+                .Split('\n')[1]
+                .TrimEnd('\r');
+
+            Assert.Contains("кофе, чай", line);
+        }
     }
 }
