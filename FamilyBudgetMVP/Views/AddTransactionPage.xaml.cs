@@ -248,5 +248,38 @@ namespace FamilyBudgetMVP.Views
         {
             await Navigation.PopModalAsync();
         }
+
+        private async void OnVoiceClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                VoiceButton.Text = "⏹";
+                VoiceButton.BackgroundColor = Colors.Red;
+
+#if WINDOWS
+                var recognizer = new Windows.Media.SpeechRecognition.SpeechRecognizer();
+                var result = await recognizer.RecognizeAsync();
+
+                VoiceButton.Text = "🎤";
+                VoiceButton.BackgroundColor = Color.FromArgb("#12968A");
+
+                if (result.Status == Windows.Media.SpeechRecognition.SpeechRecognitionResultStatus.Success)
+                {
+                    DescriptionEntry.Text = result.Text;
+                }
+#else
+                VoiceButton.Text = "🎤";
+                VoiceButton.BackgroundColor = Color.FromArgb("#12968A");
+                await DisplayAlertAsync("Голосовой ввод",
+                    "Голосовой ввод доступен на Windows. На Android будет доступен в следующем обновлении.", "OK");
+#endif
+            }
+            catch (Exception ex)
+            {
+                VoiceButton.Text = "🎤";
+                VoiceButton.BackgroundColor = Color.FromArgb("#12968A");
+                LogService.Error(ex, "Голосовой ввод");
+            }
+        }
     }
 }

@@ -232,6 +232,101 @@ namespace FamilyBudgetMVP.Views
             }
         }
 
+        // --- Бэкап и восстановление БД ---
+
+        private static string DbPath => Path.Combine(FileSystem.AppDataDirectory, "budget.db");
+
+        private async void OnBackupClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (!File.Exists(DbPath))
+                {
+                    await DisplayAlertAsync("Ошибка", "База данных не найдена.", "OK");
+                    return;
+                }
+
+                var date = DateTime.Now.ToString("yyyy-MM-dd_HHmm");
+                var backupName = $"budget_backup_{date}.db";
+
+                using var stream = File.OpenRead(DbPath);
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        { DevicePlatform.Android, new[] { "application/octet-stream" } },
+                        { DevicePlatform.iOS, new[] { "public.database" } },
+                        { DevicePlatform.macOS, new[] { "public.database" } },
+                        { DevicePlatform.WinUI, new[] { ".db" } }
+                    }),
+                    PickerTitle = "Сохранить бэкап"
+                });
+
+                if (result == null)
+                    return;
+
+                // Копируем БД в выбранный путь
+                using var destStream = File.OpenWrite(result.FullPath);
+                stream.Position = 0;
+                await stream.CopyToAsync(destStream);
+
+                await DisplayAlertAsync("Готово", $"Бэкап сохранён:\n{result.FullPath}", "OK");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error(ex, "Бэкап БД");
+                await DisplayAlertAsync("Ошибка", ex.Message, "OK");
+            }
+        }
+
+        private async void OnRestoreClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                bool confirm = await DisplayAlertAsync("Внимание",
+                    "Восстановление заменит текущую базу данных. Все несохранённые данные будут потеряны.\n\nПродолжить?",
+                    "Да", "Отмена");
+                if (!confirm) return;
+
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        { DevicePlatform.Android, new[] { "application/octet-stream", ".db" } },
+                        { DevicePlatform.iOS, new[] { "public.database" } },
+                        { DevicePlatform.macOS, new[] { "public.database" } },
+                        { DevicePlatform.WinUI, new[] { ".db" } }
+                    }),
+                    PickerTitle = "Выберите файл бэкапа"
+                });
+
+                if (result == null)
+                    return;
+
+                // Копируем в локальную папку, затем перезапускаем
+                var tempPath = DbPath + ".restore";
+                using (var sourceStream = File.OpenRead(result.FullPath))
+                using (var destStream = File.OpenWrite(tempPath))
+                {
+                    await sourceStream.CopyToAsync(destStream);
+                }
+
+                // Заменяем текущую БД
+                File.Copy(tempPath, DbPath, overwrite: true);
+                File.Delete(tempPath);
+
+                // Перезагружаем кэш категорий
+                await _categories.ReloadAsync();
+
+                await DisplayAlertAsync("Готово", "База данных восстановлена. Перезапустите приложение.", "OK");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error(ex, "Восстановление БД");
+                await DisplayAlertAsync("Ошибка", ex.Message, "OK");
+            }
+        }
+
         // --- Добавление и удаление ---
 
         private async void OnAddCategoryClicked(object? sender, EventArgs e)
@@ -393,6 +488,91 @@ namespace FamilyBudgetMVP.Views
 
             await lockService.SetPinAsync(newPin);
             await DisplayAlertAsync("Готово", "PIN-код успешно изменён.", "OK");
+        }
+
+        // --- Семейный бюджет: экспорт/импорт JSON ---
+
+        private async void OnShareFamilyClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                var txs = await _txService.GetTransactionsAsync();
+                if (txs.Count == 0)
+                {
+                    await DisplayAlertAsync("Пусто", "Нет операций для экспорта.", "OK");
+                    return;
+                }
+
+                var json = System.Text.Json.JsonSerializer.Serialize(txs, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                var date = DateTime.Now.ToString("yyyy-MM-dd");
+                var fileName = $"budget_family_{date}.json";
+                var filePath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+                await File.WriteAllTextAsync(filePath, json);
+
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = "Поделиться бюджетом",
+                    File = new ShareFile(filePath)
+                });
+            }
+            catch (Exception ex)
+            {
+                LogService.Error(ex, "Экспорт семейного бюджета");
+                await DisplayAlertAsync("Ошибка", ex.Message, "OK");
+            }
+        }
+
+        private async void OnImportFamilyClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        { DevicePlatform.Android, new[] { "application/json" } },
+                        { DevicePlatform.iOS, new[] { "public.json" } },
+                        { DevicePlatform.macOS, new[] { "public.json" } },
+                        { DevicePlatform.WinUI, new[] { ".json" } }
+                    }),
+                    PickerTitle = "Выберите файл бюджета"
+                });
+
+                if (result == null)
+                    return;
+
+                var json = await File.ReadAllTextAsync(result.FullPath);
+                var imported = System.Text.Json.JsonSerializer.Deserialize<List<Transaction>>(json);
+                if (imported == null || imported.Count == 0)
+                {
+                    await DisplayAlertAsync("Ошибка", "Файл пуст или повреждён.", "OK");
+                    return;
+                }
+
+                // Добавляем все импортированные операции (пропускаем дубли по дате+сумма+описание)
+                var existing = await _txService.GetTransactionsAsync();
+                var existingKeys = existing.Select(t => $"{t.Date:yyyyMMdd}_{t.Amount}_{t.Description}").ToHashSet();
+
+                int added = 0;
+                foreach (var tx in imported)
+                {
+                    var key = $"{tx.Date:yyyyMMdd}_{tx.Amount}_{tx.Description}";
+                    if (!existingKeys.Contains(key))
+                    {
+                        tx.Id = 0; // новая запись
+                        await _txService.SaveTransactionAsync(tx);
+                        added++;
+                    }
+                }
+
+                await DisplayAlertAsync("Готово",
+                    $"Импортировано: {added} из {imported.Count}\n(дубли пропущены)", "OK");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error(ex, "Импорт семейного бюджета");
+                await DisplayAlertAsync("Ошибка", ex.Message, "OK");
+            }
         }
     }
 }

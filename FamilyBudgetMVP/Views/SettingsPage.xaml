@@ -115,6 +115,21 @@
                         <Button Text="⬇  Выгрузить операции в CSV"
                                 Style="{StaticResource PrimaryButton}"
                                 Clicked="OnExportClicked"/>
+
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource SurfaceBorder}, Dark={StaticResource SurfaceBorderDark}}"/>
+
+                        <Label Text="Резервная копия базы данных. Сохраните файл .db для переноса на другое устройство."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="💾  Бэкап"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnBackupClicked"/>
+                            <Button Grid.Column="1" Text="📂  Восстановить"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnRestoreClicked"/>
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 
@@ -145,6 +160,30 @@
                                 Style="{StaticResource PrimaryButton}"
                                 IsVisible="False"
                                 Clicked="OnChangePinClicked"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Семья: совместный бюджет -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                            <Label Text="Семья" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Label Text="Экспорт/импорт операций для совместного бюджета. Отправьте JSON-файл члену семьи через мессенджер."
+                               FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="📤  Поделиться"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnShareFamilyClicked"/>
+                            <Button Grid.Column="1" Text="📥  Импорт"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnImportFamilyClicked"/>
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
