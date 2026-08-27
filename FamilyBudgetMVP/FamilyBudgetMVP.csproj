@@ -45,6 +45,9 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+
+        <!-- Поддержка как арми 64, так и 32-битных устройств (Android 9 и ниже) -->
+        <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">android-arm;android-arm64;android-x86;android-x64</RuntimeIdentifiers>
         <!-- Android signing for release -->
         <AndroidSigningKeyStore Condition="'$(Configuration)' == 'Release'">familybudget-release.keystore</AndroidSigningKeyStore>
         <AndroidSigningKeyAlias Condition="'$(Configuration)' == 'Release'">familybudget</AndroidSigningKeyAlias>
