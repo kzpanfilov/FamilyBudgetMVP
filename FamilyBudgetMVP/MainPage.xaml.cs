@@ -260,13 +260,7 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var now = DateTime.Today;
-            var monthItems = _transactions
-                .Where(t => t.Amount < 0 &&
-                            t.Category == category &&
-                            t.Date.Year == now.Year &&
-                            t.Date.Month == now.Month)
-                .ToList();
+            var monthItems = _budgetService.FilterByCategory(_transactions, category);
 
             await Navigation.PushModalAsync(new CategoryDetailPage(category, monthItems));
         }
@@ -299,8 +293,8 @@ public partial class MainPage : ContentPage
         var s = _budgetService.SummarizeMonth(_transactions, now.Year, now.Month);
 
         BalanceLabel.Text = $"{s.Balance:N2} ₽";
-        IncomeLabel.Text = $"^  {s.Income:N0} ₽";
-        ExpenseLabel.Text = $"v  {s.Expense:N0} ₽";
+        IncomeLabel.Text = $"↑  {s.Income:N0} ₽";
+        ExpenseLabel.Text = $"↓  {s.Expense:N0} ₽";
 
         // Прогноз «до какой даты хватит денег» (ТЗ MVP)
         var forecast = ForecastEngine.Project(_transactions, DateTime.Today);
