@@ -226,11 +226,18 @@ namespace FamilyBudgetMVP.Views
                             Spacing = 2,
                             Children =
                             {
-                                new Label { Text = t.Title, FontFamily = "OpenSansSemibold", FontSize = 15 },
+                                new Label
+                                {
+                                    Text = t.Title,
+                                    FontFamily = "OpenSansSemibold",
+                                    FontSize = 15,
+                                    LineBreakMode = LineBreakMode.WordWrap
+                                },
                                 new Label
                                 {
                                     Text = t.Description,
                                     FontSize = 12,
+                                    LineBreakMode = LineBreakMode.WordWrap,
                                     TextColor = (Color)Application.Current!.Resources["InkSecondary"]
                                 }
                             }
