@@ -73,7 +73,8 @@ namespace FamilyBudgetMVP.Views
                     StrokeThickness = 2,
                     StrokeShape = new Microsoft.Maui.Controls.Shapes.Ellipse(),
                     BackgroundColor = Color.FromArgb(hex),
-                    BindingContext = hex
+                    BindingContext = hex,
+                    Margin = new Thickness(0, 0, 8, 8)
                 };
 
                 swatch.GestureRecognizers.Add(new TapGestureRecognizer

@@ -171,14 +171,13 @@ public partial class MainPage : ContentPage
                 LegendOption = SeriesLegendOption.None
             };
 
-            ChartView.Content = CreateTappableChart(barChart);
+            var innerChartView = CreateTappableChart(barChart);
 
-            if (ChartView.GestureRecognizers.Count == 0)
-            {
-                var tapGesture = new TapGestureRecognizer();
-                tapGesture.Tapped += OnChartTapped;
-                ChartView.GestureRecognizers.Add(tapGesture);
-            }
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += OnChartTapped;
+            innerChartView.GestureRecognizers.Add(tapGesture);
+
+            ChartView.Content = innerChartView;
         }
 
         // �������� ������ �������� �� ����

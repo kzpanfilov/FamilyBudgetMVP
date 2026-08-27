@@ -90,7 +90,7 @@
                                        HorizontalTextAlignment="Center"
                                        FontSize="18"/>
                             </Border>
-                            <HorizontalStackLayout Grid.Column="1" x:Name="SwatchPanel" Spacing="8" VerticalOptions="Center"/>
+                            <FlexLayout Grid.Column="1" x:Name="SwatchPanel" Wrap="Wrap" JustifyContent="Start" AlignItems="Start"/>
                         </Grid>
 
                         <Button Text="＋  Добавить категорию"
