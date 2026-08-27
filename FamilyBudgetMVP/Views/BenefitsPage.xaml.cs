@@ -208,9 +208,32 @@ namespace FamilyBudgetMVP.Views
                     WidthRequest = 96,
                     HeightRequest = 40,
                     FontSize = 13,
-                    VerticalOptions = LayoutOptions.Center
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.End
                 };
                 open.Clicked += async (_, _) => await OpenTemplateAsync(t);
+
+                var textStack = new VerticalStackLayout
+                {
+                    Spacing = 2,
+                    Children =
+                    {
+                        new Label
+                        {
+                            Text = t.Title,
+                            FontFamily = "OpenSansSemibold",
+                            FontSize = 15,
+                            LineBreakMode = LineBreakMode.WordWrap
+                        },
+                        new Label
+                        {
+                            Text = t.Description,
+                            FontSize = 12,
+                            LineBreakMode = LineBreakMode.WordWrap,
+                            TextColor = (Color)Application.Current!.Resources["InkSecondary"]
+                        }
+                    }
+                };
 
                 var row = new Grid
                 {
@@ -219,32 +242,10 @@ namespace FamilyBudgetMVP.Views
                         new(GridLength.Star),
                         new(GridLength.Auto)
                     },
-                    Children =
-                    {
-                        new VerticalStackLayout
-                        {
-                            Spacing = 2,
-                            Children =
-                            {
-                                new Label
-                                {
-                                    Text = t.Title,
-                                    FontFamily = "OpenSansSemibold",
-                                    FontSize = 15,
-                                    LineBreakMode = LineBreakMode.WordWrap
-                                },
-                                new Label
-                                {
-                                    Text = t.Description,
-                                    FontSize = 12,
-                                    LineBreakMode = LineBreakMode.WordWrap,
-                                    TextColor = (Color)Application.Current!.Resources["InkSecondary"]
-                                }
-                            }
-                        },
-                        open
-                    }
+                    ColumnSpacing = 8
                 };
+                row.Add(textStack, 0, 0);
+                row.Add(open, 1, 0);
 
                 TemplatesList.Children.Add(new Border
                 {
