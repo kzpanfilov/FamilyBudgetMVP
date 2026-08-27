@@ -57,7 +57,55 @@ namespace FamilyBudgetMVP.Views
             ChangePinButton.IsVisible = lockService.IsEnabled;
 
             RefreshPremiumUi();
+            RefreshBudgetPeriodUi();
         }
+
+        // --- Период бюджета ---
+
+        private void RefreshBudgetPeriodUi()
+        {
+            var store = ServiceHelper.Get<BudgetPeriodStore>();
+            var period = store.GetCurrent();
+
+            PeriodStartDayEntry.Text = period.StartDay.ToString(CultureInfo.InvariantCulture);
+            PeriodEndDayEntry.Text = period.EndDay.ToString(CultureInfo.InvariantCulture);
+
+            var isCalendarMonth = period == BudgetPeriod.CalendarMonth;
+            BudgetPeriodHintLabel.Text = isCalendarMonth
+                ? "Баланс и прогноз считаются за текущий календарный месяц."
+                : $"Баланс и прогноз считаются за период: {period.FormatRange(DateTime.Today)}.\nЗадайте свои границы месяца — например, 21 по 4 (с 21-го числа по 4-е следующего месяца).";
+        }
+
+        private void OnSavePeriodClicked(object? sender, EventArgs e)
+        {
+            int startDay = ParseDay(PeriodStartDayEntry.Text);
+            int endDay = ParseDay(PeriodEndDayEntry.Text);
+
+            if (startDay is <= 0 || endDay is <= 0)
+            {
+                DisplayAlertAsync("Ошибка", "Введите дни периода числами от 1 до 31.", "OK");
+                return;
+            }
+
+            ServiceHelper.Get<BudgetPeriodStore>().Save(new Models.BudgetPeriod(startDay, endDay));
+            RefreshBudgetPeriodUi();
+            DisplayAlertAsync("Сохранено", "Период бюджета обновлён. Дашборд пересчитает баланс и прогноз.", "OK");
+        }
+
+        private void OnResetPeriodClicked(object? sender, EventArgs e)
+        {
+            ServiceHelper.Get<BudgetPeriodStore>().ResetToCalendarMonth();
+            RefreshBudgetPeriodUi();
+            DisplayAlertAsync("Сброшено", "Период снова считается за календарный месяц.", "OK");
+        }
+
+        private static int ParseDay(string? text) => int.TryParse(
+            (text ?? string.Empty).Trim(),
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out int day)
+                ? day
+                : 0;
 
         // --- Премиум: статус и активация по коду ---
 

@@ -123,6 +123,8 @@
 
                 <VerticalStackLayout Spacing="2" Padding="4">
                     <Label Text="БЮДЖЕТ+" Style="{StaticResource HeroCaption}" />
+                    <Label x:Name="PeriodLabel" Text="" FontSize="11"
+                           TextColor="#BCE8E1" CharacterSpacing="1" />
                     <Label x:Name="BalanceLabel" Text="0,00 ₽" Style="{StaticResource HeroBalance}" />
 
                     <HorizontalStackLayout Spacing="8" Margin="0,10,0,0">
@@ -150,7 +152,7 @@
         <VerticalStackLayout Grid.Row="1" Spacing="10">
             <HorizontalStackLayout Spacing="8">
                 <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
-                <Label Text="Расходы по категориям · месяц" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                <Label Text="Расходы по категориям · период" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
             </HorizontalStackLayout>
 
             <!-- Предупреждение о лимитах -->

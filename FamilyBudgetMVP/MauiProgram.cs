@@ -31,6 +31,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<BudgetService>();
         builder.Services.AddSingleton<NotificationService>();
         builder.Services.AddSingleton<LockService>();
+        builder.Services.AddSingleton<BudgetPeriodStore>();
         builder.Services.AddSingleton<Services.IPremiumStore, Services.PremiumPreferencesStore>();
         builder.Services.AddTransient<FamilyBudgetMVP.Views.LockPage>();
 

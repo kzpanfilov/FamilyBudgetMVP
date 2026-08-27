@@ -13,27 +13,35 @@ namespace FamilyBudgetMVP.Views
     {
         private static readonly CultureInfo RuCulture = CultureInfo.GetCultureInfo("ru-RU");
 
-        public CategoryDetailPage(string categoryName, List<Transaction> monthItems)
+        public CategoryDetailPage(string categoryName, List<Transaction> periodItems, DateTime startInclusive, DateTime endExclusive)
         {
             InitializeComponent();
 
             var category = ServiceHelper.Get<CategoryStore>().Find(categoryName);
 
-            decimal total = -monthItems.Sum(t => t.Amount);
-            string monthTitle = DateTime.Today.ToString("MMMM yyyy", RuCulture);
-            monthTitle = char.ToUpper(monthTitle[0]) + monthTitle[1..];
+            decimal total = -periodItems.Sum(t => t.Amount);
+            string periodTitle = BudgetPeriodLabel(startInclusive, endExclusive);
 
             BindingContext = new DetailHeader
             {
                 Icon = category?.Icon ?? "📦",
                 TintHex = category?.TintHex ?? "#E2E8F0",
                 Title = categoryName,
-                MonthTitle = monthTitle,
+                MonthTitle = periodTitle,
                 TotalText = $"−{total:N0} ₽",
-                CountText = OperationsCountText(monthItems.Count)
+                CountText = OperationsCountText(periodItems.Count)
             };
 
-            ItemsList.ItemsSource = monthItems.OrderByDescending(t => t.Date).ToList();
+            ItemsList.ItemsSource = periodItems.OrderByDescending(t => t.Date).ToList();
+        }
+
+        private static string BudgetPeriodLabel(DateTime startInclusive, DateTime endExclusive)
+        {
+            var end = endExclusive.AddDays(-1);
+            string endStr = startInclusive.Year == end.Year
+                ? end.ToString("d MMMM", RuCulture)
+                : end.ToString("d MMMM yyyy", RuCulture);
+            return $"{startInclusive:dd} – {endStr}";
         }
 
         private async void OnBackClicked(object? sender, EventArgs e)

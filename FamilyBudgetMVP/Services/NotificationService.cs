@@ -8,19 +8,23 @@ public class NotificationService
     private readonly BudgetService _budget;
     private readonly TransactionService _txService;
     private readonly CategoryStore _categories;
+    private readonly BudgetPeriodStore _periodStore;
 
-    public NotificationService(BudgetService budget, TransactionService txService, CategoryStore categories)
+    public NotificationService(BudgetService budget, TransactionService txService, CategoryStore categories, BudgetPeriodStore periodStore)
     {
         _budget = budget;
         _txService = txService;
         _categories = categories;
+        _periodStore = periodStore;
     }
 
     public async Task CheckLimitsAndNotifyAsync()
     {
         var txs = await _txService.GetTransactionsAsync();
         var cats = _categories.All;
-        var limits = _budget.CheckMonthlyLimits(txs, cats).ToList();
+        var period = _periodStore.GetCurrent();
+        var (start, endExclusive) = period.Resolve(DateTime.Today);
+        var limits = _budget.CheckLimitsInRange(txs, cats, start, endExclusive).ToList();
 
         foreach (var lim in limits)
         {

@@ -47,6 +47,46 @@
                        TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
             </VerticalStackLayout>
 
+                <!-- Период бюджета -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                            <Label Text="Период бюджета" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Label x:Name="BudgetPeriodHintLabel" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Border Grid.Column="0" Style="{StaticResource InputWrap}">
+                                <Entry x:Name="PeriodStartDayEntry"
+                                       Keyboard="Numeric"
+                                       MaxLength="2"
+                                       Placeholder="день начала (1-31)"
+                                       PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource InputWrap}">
+                                <Entry x:Name="PeriodEndDayEntry"
+                                       Keyboard="Numeric"
+                                       MaxLength="2"
+                                       Placeholder="день конца (1-31)"
+                                       PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="Сохранить период"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Clicked="OnSavePeriodClicked"/>
+                            <Button Grid.Column="1" Text="Месяц"
+                                    Style="{StaticResource GhostDelete}"
+                                    Clicked="OnResetPeriodClicked"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Список категорий -->
                 <Border Style="{StaticResource Card}" Padding="6">
                     <CollectionView x:Name="CategoriesList">

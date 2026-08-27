@@ -57,9 +57,19 @@ namespace FamilyBudgetMVP.Services
             int y = year ?? now.Year;
             int m = month ?? now.Month;
 
-            var monthStart = new DateTime(y, m, 1, 0, 0, 0, DateTimeKind.Utc);
-            var monthEnd = monthStart.AddMonths(1);
+            var monthStart = new DateTime(y, m, 1);
+            return SummarizeRange(transactions, monthStart, monthStart.AddMonths(1));
+        }
 
+        /// <summary>
+        /// Баланс за произвольный период [startInclusive; endExclusive) с учётом
+        /// повторяющихся операций (будущие вхождения проецируются в период).
+        /// </summary>
+        public BudgetSummary SummarizeRange(
+            IEnumerable<Transaction> transactions,
+            DateTime startInclusive,
+            DateTime endExclusive)
+        {
             var list = transactions.ToList();
             decimal totalBalance = 0, totalIncome = 0, totalExpense = 0;
 
@@ -67,8 +77,8 @@ namespace FamilyBudgetMVP.Services
             {
                 if (!tx.IsRecurring)
                 {
-                    // Обычная операция: считаем только если попадает в месяц
-                    if (tx.Date >= monthStart && tx.Date < monthEnd)
+                    // Обычная операция: считаем только если попадает в период
+                    if (tx.Date >= startInclusive && tx.Date < endExclusive)
                     {
                         totalBalance += tx.Amount;
                         if (tx.Amount > 0) totalIncome += tx.Amount;
@@ -77,26 +87,26 @@ namespace FamilyBudgetMVP.Services
                 }
                 else
                 {
-                    // Повторяющаяся: считаем базовое + все проецируемые вхождения в месяц
+                    // Повторяющаяся: считаем базовое + все проецируемые вхождения в период
                     // OccurrencesAfter генерирует только БУДУЩИЕ вхождения (после базовой даты),
                     // поэтому базовое вхождение обрабатываем отдельно
-                    if (tx.Date >= monthStart && tx.Date < monthEnd)
+                    if (tx.Date >= startInclusive && tx.Date < endExclusive)
                     {
                         totalBalance += tx.Amount;
                         if (tx.Amount > 0) totalIncome += tx.Amount;
                         else totalExpense -= tx.Amount;
                     }
 
-                    // Проецируем будущие вхождения (от вчерашнего дня — чтобы захватить вчерашнее базовое)
-                    var fromExclusive = tx.Date.Date < monthStart.Date
-                        ? monthStart.Date.AddDays(-1)
+                    // Проецируем будущие вхождения (от дня перед началом — чтобы захватить вхождение на дату startInclusive)
+                    var fromExclusive = tx.Date.Date < startInclusive.Date
+                        ? startInclusive.Date.AddDays(-1)
                         : tx.Date.Date;
 
                     foreach (var occurrence in Recurrence.OccurrencesAfter(
                         tx.Date, tx.RecurrenceType, tx.RecurEndDate,
-                        fromExclusive, monthEnd.AddDays(-1)))
+                        fromExclusive, endExclusive.AddDays(-1)))
                     {
-                        if (occurrence >= monthStart && occurrence < monthEnd)
+                        if (occurrence >= startInclusive && occurrence < endExclusive)
                         {
                             totalBalance += tx.Amount;
                             if (tx.Amount > 0) totalIncome += tx.Amount;
@@ -122,8 +132,20 @@ namespace FamilyBudgetMVP.Services
             int y = year ?? now.Year;
             int m = month ?? now.Month;
 
+            var monthStart = new DateTime(y, m, 1);
+            return BuildRangeExpenseEntries(transactions, monthStart, monthStart.AddMonths(1), categories, defaultValueLabelHex);
+        }
+
+        /// <summary>Расходы по категориям за произвольный период [startInclusive; endExclusive).</summary>
+        public List<ChartEntry> BuildRangeExpenseEntries(
+            IEnumerable<Transaction> transactions,
+            DateTime startInclusive,
+            DateTime endExclusive,
+            IReadOnlyList<Category>? categories = null,
+            string? defaultValueLabelHex = null)
+        {
             return transactions
-                .Where(t => t.Amount < 0 && t.Date.Year == y && t.Date.Month == m)
+                .Where(t => t.Amount < 0 && t.Date >= startInclusive && t.Date < endExclusive)
                 .GroupBy(t => t.Category)
                 .Select(g => new { Category = g.Key, Total = -g.Sum(t => t.Amount) })
                 .OrderByDescending(x => x.Total)
@@ -183,7 +205,17 @@ namespace FamilyBudgetMVP.Services
         public List<LimitStatus> CheckMonthlyLimits(IEnumerable<Transaction> transactions, IReadOnlyList<Category> categories)
         {
             var now = DateTime.Today;
+            var monthStart = new DateTime(now.Year, now.Month, 1);
+            return CheckLimitsInRange(transactions, categories, monthStart, monthStart.AddMonths(1));
+        }
 
+        /// <summary>Лимиты категорий за произвольный период [startInclusive; endExclusive).</summary>
+        public List<LimitStatus> CheckLimitsInRange(
+            IEnumerable<Transaction> transactions,
+            IReadOnlyList<Category> categories,
+            DateTime startInclusive,
+            DateTime endExclusive)
+        {
             return categories
                 .Where(c => c.MonthlyLimit > 0)
                 .Select(c =>
@@ -191,8 +223,8 @@ namespace FamilyBudgetMVP.Services
                     var spent = -transactions
                         .Where(t => t.Amount < 0 &&
                                     t.Category == c.Name &&
-                                    t.Date.Year == now.Year &&
-                                    t.Date.Month == now.Month)
+                                    t.Date >= startInclusive &&
+                                    t.Date < endExclusive)
                         .Sum(t => t.Amount);
 
                     return new LimitStatus(c.Name, spent, c.MonthlyLimit);
@@ -216,11 +248,24 @@ namespace FamilyBudgetMVP.Services
             int y = year ?? now.Year;
             int m = month ?? now.Month;
 
+            var monthStart = new DateTime(y, m, 1);
+            return FilterByCategoryRange(transactions, category, monthStart, monthStart.AddMonths(1));
+        }
+
+        /// <summary>
+        /// Расходы за период по категории (для экрана детализации).
+        /// </summary>
+        public List<Transaction> FilterByCategoryRange(
+            IEnumerable<Transaction> transactions,
+            string category,
+            DateTime startInclusive,
+            DateTime endExclusive)
+        {
             return transactions
                 .Where(t => t.Amount < 0 &&
                             t.Category == category &&
-                            t.Date.Year == y &&
-                            t.Date.Month == m)
+                            t.Date >= startInclusive &&
+                            t.Date < endExclusive)
                 .OrderByDescending(t => t.Date)
                 .ToList();
         }
