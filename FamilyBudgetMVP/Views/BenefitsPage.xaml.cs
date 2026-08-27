@@ -22,25 +22,13 @@ namespace FamilyBudgetMVP.Views
             InitializeComponent();
             _benefits = benefits;
             _fileSaver = fileSaver;
-
-            // Freemium: полный справочник — премиум (сейчас флаг открыт)
-            if (!FeatureGate.IsUnlocked(Feature.FullBenefits))
-            {
-                ContentHost.Children.Clear();
-                ContentHost.Children.Add(new Label
-                {
-                    Text = "🔒  Полный справочник доступен в премиум-версии",
-                    FontFamily = "OpenSansSemibold",
-                    FontSize = 16,
-                    HorizontalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(0, 48, 0, 0)
-                });
-            }
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            PremiumLock.IsVisible = !FeatureGate.IsUnlocked(Feature.FullBenefits);
 
             try
             {
@@ -65,6 +53,11 @@ namespace FamilyBudgetMVP.Views
                 LogService.Error(ex, "Льготы: загрузка");
                 ActualLabel.Text = "Не удалось загрузить справочник";
             }
+        }
+
+        private async void OnPremiumClicked(object? sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//settings");
         }
 
         private async void OnSearchChanged(object? sender, TextChangedEventArgs e) => await ReloadResultsAsync();
@@ -215,9 +208,32 @@ namespace FamilyBudgetMVP.Views
                     WidthRequest = 96,
                     HeightRequest = 40,
                     FontSize = 13,
-                    VerticalOptions = LayoutOptions.Center
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.End
                 };
                 open.Clicked += async (_, _) => await OpenTemplateAsync(t);
+
+                var textStack = new VerticalStackLayout
+                {
+                    Spacing = 2,
+                    Children =
+                    {
+                        new Label
+                        {
+                            Text = t.Title,
+                            FontFamily = "OpenSansSemibold",
+                            FontSize = 15,
+                            LineBreakMode = LineBreakMode.WordWrap
+                        },
+                        new Label
+                        {
+                            Text = t.Description,
+                            FontSize = 12,
+                            LineBreakMode = LineBreakMode.WordWrap,
+                            TextColor = (Color)Application.Current!.Resources["InkSecondary"]
+                        }
+                    }
+                };
 
                 var row = new Grid
                 {
@@ -226,25 +242,10 @@ namespace FamilyBudgetMVP.Views
                         new(GridLength.Star),
                         new(GridLength.Auto)
                     },
-                    Children =
-                    {
-                        new VerticalStackLayout
-                        {
-                            Spacing = 2,
-                            Children =
-                            {
-                                new Label { Text = t.Title, FontFamily = "OpenSansSemibold", FontSize = 15 },
-                                new Label
-                                {
-                                    Text = t.Description,
-                                    FontSize = 12,
-                                    TextColor = (Color)Application.Current!.Resources["InkSecondary"]
-                                }
-                            }
-                        },
-                        open
-                    }
+                    ColumnSpacing = 8
                 };
+                row.Add(textStack, 0, 0);
+                row.Add(open, 1, 0);
 
                 TemplatesList.Children.Add(new Border
                 {

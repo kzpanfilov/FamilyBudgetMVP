@@ -55,6 +55,124 @@ namespace FamilyBudgetMVP.Views
             var lockService = ServiceHelper.Get<LockService>();
             LockSwitch.IsToggled = lockService.IsEnabled;
             ChangePinButton.IsVisible = lockService.IsEnabled;
+
+            RefreshPremiumUi();
+            RefreshBudgetPeriodUi();
+        }
+
+        // --- Период бюджета ---
+
+        private void RefreshBudgetPeriodUi()
+        {
+            var store = ServiceHelper.Get<BudgetPeriodStore>();
+            var period = store.GetCurrent();
+
+            PeriodStartDayEntry.Text = period.StartDay.ToString(CultureInfo.InvariantCulture);
+            PeriodEndDayEntry.Text = period.EndDay.ToString(CultureInfo.InvariantCulture);
+
+            var isCalendarMonth = period == BudgetPeriod.CalendarMonth;
+            BudgetPeriodHintLabel.Text = isCalendarMonth
+                ? "Баланс и прогноз считаются за текущий календарный месяц."
+                : $"Баланс и прогноз считаются за период: {period.FormatRange(DateTime.Today)}.\nЗадайте свои границы месяца — например, 21 по 4 (с 21-го числа по 4-е следующего месяца).";
+        }
+
+        private void OnSavePeriodClicked(object? sender, EventArgs e)
+        {
+            int startDay = ParseDay(PeriodStartDayEntry.Text);
+            int endDay = ParseDay(PeriodEndDayEntry.Text);
+
+            if (startDay is <= 0 || endDay is <= 0)
+            {
+                DisplayAlertAsync("Ошибка", "Введите дни периода числами от 1 до 31.", "OK");
+                return;
+            }
+
+            ServiceHelper.Get<BudgetPeriodStore>().Save(new Models.BudgetPeriod(startDay, endDay));
+            RefreshBudgetPeriodUi();
+            DisplayAlertAsync("Сохранено", "Период бюджета обновлён. Дашборд пересчитает баланс и прогноз.", "OK");
+        }
+
+        private void OnResetPeriodClicked(object? sender, EventArgs e)
+        {
+            ServiceHelper.Get<BudgetPeriodStore>().ResetToCalendarMonth();
+            RefreshBudgetPeriodUi();
+            DisplayAlertAsync("Сброшено", "Период снова считается за календарный месяц.", "OK");
+        }
+
+        private static int ParseDay(string? text) => int.TryParse(
+            (text ?? string.Empty).Trim(),
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out int day)
+                ? day
+                : 0;
+
+        // --- Премиум: статус и активация по коду ---
+
+        private void RefreshPremiumUi()
+        {
+            if (FeatureGate.IsPremium)
+            {
+                var until = FeatureGate.ValidUntilUtc ?? DateTime.UtcNow;
+                PremiumStatusLabel.Text = $"⭐ Премиум активен{(FeatureGate.ValidUntilUtc != null ? $" до {until.ToLocalTime():d MMMM yyyy}" : " бессрочно")}";
+                PremiumStatusLabel.FontFamily = "OpenSansSemibold";
+                PremiumStatusLabel.TextColor = Color.FromArgb("#14B8A6");
+                PremiumHintLabel.Text = "Все функции доступны. Спасибо за поддержку! ❤️";
+                PremiumCodeEntry.IsVisible = false;
+                PremiumCodeEntry.Text = string.Empty;
+                ActivatePremiumButton.IsVisible = false;
+            }
+            else
+            {
+                PremiumStatusLabel.Text = "Бесплатная версия — Сценарии и полный справочник льгот доступны в премиуме";
+                PremiumStatusLabel.FontFamily = "OpenSansRegular";
+                PremiumStatusLabel.TextColor = Color.FromArgb("#94A3B8");
+                PremiumHintLabel.Text = "Введи код активации (получают участники семейного проекта).";
+                PremiumCodeEntry.IsVisible = true;
+                ActivatePremiumButton.IsVisible = true;
+            }
+        }
+
+        private async void OnActivatePremiumClicked(object? sender, EventArgs e)
+        {
+            var code = PremiumCodeEntry.Text?.Trim() ?? string.Empty;
+
+            if (code.Length == 0)
+            {
+                await DisplayAlertAsync("Код активации", "Введи код, полученный от бота Бюджет+.", "OK");
+                return;
+            }
+
+            var result = PremiumActivation.Validate(code, DateTime.UtcNow);
+
+            switch (result.Status)
+            {
+                case PremiumActivationStatus.Valid when result.ValidUntilUtc is { } until:
+                    try
+                    {
+                        var store = ServiceHelper.Get<IPremiumStore>();
+                        store.Activate(until);
+
+                        LogService.Info($"Премиум активирован до {until:yyyy-MM-dd}");
+                        RefreshPremiumUi();
+                        await DisplayAlertAsync("Премиум активирован 🎉",
+                            $"Все функции доступны до {until.ToLocalTime():d MMMM yyyy}.", "Отлично");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.Error(ex, "Активация премиума");
+                        await DisplayAlertAsync("Ошибка", $"Не удалось сохранить активацию: {ex.Message}", "OK");
+                    }
+                    break;
+
+                case PremiumActivationStatus.Expired:
+                    await DisplayAlertAsync("Код истёк", "Срок действия этого кода уже закончился. Запроси новый код.", "OK");
+                    break;
+
+                default:
+                    await DisplayAlertAsync("Неверный код", "Проверь код — он введён с ошибкой или не существует.", "OK");
+                    break;
+            }
         }
 
         // --- Палитра выбора цвета ---
@@ -73,7 +191,8 @@ namespace FamilyBudgetMVP.Views
                     StrokeThickness = 2,
                     StrokeShape = new Microsoft.Maui.Controls.Shapes.Ellipse(),
                     BackgroundColor = Color.FromArgb(hex),
-                    BindingContext = hex
+                    BindingContext = hex,
+                    Margin = new Thickness(0, 0, 8, 8)
                 };
 
                 swatch.GestureRecognizers.Add(new TapGestureRecognizer

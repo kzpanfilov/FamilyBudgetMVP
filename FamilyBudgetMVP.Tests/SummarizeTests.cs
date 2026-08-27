@@ -120,5 +120,53 @@ namespace FamilyBudgetMVP.Tests
 
             Assert.Equal(0m, s.Expense);
         }
+
+        // --- Период бюджета: произвольный диапазон [start; endExclusive) ---
+
+        [Fact]
+        public void SummarizeRange_Only_Counts_Transactions_Inside_Window()
+        {
+            var start = new DateTime(2026, 8, 21);
+            var end = new DateTime(2026, 9, 5); // 4-е включительно
+
+            var txs = new[]
+            {
+                Tx(new DateTime(2026, 8, 20), -100),   // вне: до начала
+                Tx(new DateTime(2026, 8, 21), -500),   // внутри
+                Tx(new DateTime(2026, 8, 27), 2000),   // внутри
+                Tx(new DateTime(2026, 9, 4), -300),    // внутри (граница конца)
+                Tx(new DateTime(2026, 9, 5), -400)     // вне: после конца (исключается)
+            };
+
+            var s = _service.SummarizeRange(txs, start, end);
+
+            Assert.Equal(1200m, s.Balance);   // -500 + 2000 - 300
+            Assert.Equal(2000m, s.Income);
+            Assert.Equal(800m, s.Expense);
+        }
+
+        [Fact]
+        public void SummarizeRange_Projects_Recurring_Into_Window()
+        {
+            var start = new DateTime(2026, 8, 21);
+            var end = new DateTime(2026, 9, 5);
+
+            var tx = new Transaction
+            {
+                Description = "Аренда",
+                Amount = -10000,
+                Date = new DateTime(2026, 8, 21),
+                Category = "жильё",
+                RecurrenceType = Recurrence.Monthly
+            };
+
+            var s = _service.SummarizeRange(new[] { tx }, start, end);
+
+            // Базовое вхождение 21.08 + проекция 21.09 (вне окна) → считаем только базовое
+            Assert.Equal(10000m, s.Expense);
+        }
+
+        private static Transaction Tx(DateTime date, decimal amount) =>
+            new() { Description = "t", Amount = amount, Date = date, Category = "еда" };
     }
 }

@@ -22,25 +22,13 @@ namespace FamilyBudgetMVP.Views
             _txService = txService;
             _scenarios = scenarios;
             _budgetService = budgetService;
-
-            // Freemium: сценарии — премиум-функция (сейчас флаг открыт)
-            if (!FeatureGate.IsUnlocked(Feature.Scenarios))
-            {
-                ContentHost.Children.Clear();
-                ContentHost.Children.Add(new Label
-                {
-                    Text = "🔒  Сценарии доступны в премиум-версии",
-                    FontFamily = "OpenSansSemibold",
-                    FontSize = 16,
-                    HorizontalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(0, 48, 0, 0)
-                });
-            }
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            PremiumLock.IsVisible = !FeatureGate.IsUnlocked(Feature.Scenarios);
 
             try
             {
@@ -97,6 +85,11 @@ namespace FamilyBudgetMVP.Views
             DeltaLine.Text = delta == 0
                 ? "Разницы нет"
                 : $"{sign}{Math.Abs(delta):N0} ₽ к остатку на конец срока";
+        }
+
+        private async void OnPremiumClicked(object? sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//settings");
         }
 
         private void OnCalculateClicked(object? sender, EventArgs e)

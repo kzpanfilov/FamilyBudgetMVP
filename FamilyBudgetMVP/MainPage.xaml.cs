@@ -137,12 +137,13 @@ public partial class MainPage : ContentPage
     private void UpdateCharts()
     {
         var categories = _categories.All;
+        var (start, endExclusive) = ServiceHelper.Get<BudgetPeriodStore>().GetCurrent().Resolve(DateTime.Today);
 
-        // ���������� ������: ������� �������� ������, �������� ���������� � �������
-        var entries = _budgetService.BuildMonthExpenseEntries(
-            _transactions, categories,
+        // ������ ������: ������ �������� ������, �������� ���������� � �������
+        var entries = _budgetService.BuildRangeExpenseEntries(
+            _transactions, start, endExclusive, categories,
             defaultValueLabelHex: IsDarkTheme ? "#E8EDEC" : "#1F2A2E");
-        UpdateLimitWarnings(categories);
+        UpdateLimitWarnings(categories, start, endExclusive);
 
         if (entries.Count == 0)
         {
@@ -171,14 +172,13 @@ public partial class MainPage : ContentPage
                 LegendOption = SeriesLegendOption.None
             };
 
-            ChartView.Content = CreateTappableChart(barChart);
+            var innerChartView = CreateTappableChart(barChart);
 
-            if (ChartView.GestureRecognizers.Count == 0)
-            {
-                var tapGesture = new TapGestureRecognizer();
-                tapGesture.Tapped += OnChartTapped;
-                ChartView.GestureRecognizers.Add(tapGesture);
-            }
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += OnChartTapped;
+            innerChartView.GestureRecognizers.Add(tapGesture);
+
+            ChartView.Content = innerChartView;
         }
 
         // �������� ������ �������� �� ����
@@ -261,15 +261,10 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            var now = DateTime.Today;
-            var monthItems = _transactions
-                .Where(t => t.Amount < 0 &&
-                            t.Category == category &&
-                            t.Date.Year == now.Year &&
-                            t.Date.Month == now.Month)
-                .ToList();
+            var (start, endExclusive) = ServiceHelper.Get<BudgetPeriodStore>().GetCurrent().Resolve(DateTime.Today);
+            var periodItems = _budgetService.FilterByCategoryRange(_transactions, category, start, endExclusive);
 
-            await Navigation.PushModalAsync(new CategoryDetailPage(category, monthItems));
+            await Navigation.PushModalAsync(new CategoryDetailPage(category, periodItems, start, endExclusive));
         }
         catch (Exception ex)
         {
@@ -277,9 +272,9 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void UpdateLimitWarnings(IReadOnlyList<Category> categories)
+    private void UpdateLimitWarnings(IReadOnlyList<Category> categories, DateTime start, DateTime endExclusive)
     {
-        var issues = _budgetService.CheckMonthlyLimits(_transactions, categories);
+        var issues = _budgetService.CheckLimitsInRange(_transactions, categories, start, endExclusive);
 
         if (issues.Count == 0)
         {
@@ -297,14 +292,19 @@ public partial class MainPage : ContentPage
     private void UpdateBalance()
     {
         var now = DateTime.Today;
-        var s = _budgetService.SummarizeMonth(_transactions, now.Year, now.Month);
+        var period = ServiceHelper.Get<BudgetPeriodStore>().GetCurrent();
+        var (start, endExclusive) = period.Resolve(now);
+
+        var s = _budgetService.SummarizeRange(_transactions, start, endExclusive);
 
         BalanceLabel.Text = $"{s.Balance:N2} ₽";
-        IncomeLabel.Text = $"^  {s.Income:N0} ₽";
-        ExpenseLabel.Text = $"v  {s.Expense:N0} ₽";
+        IncomeLabel.Text = $"↑  {s.Income:N0} ₽";
+        ExpenseLabel.Text = $"↓  {s.Expense:N0} ₽";
 
-        // Прогноз «до какой даты хватит денег» (ТЗ MVP)
-        var forecast = ForecastEngine.Project(_transactions, DateTime.Today);
+        PeriodLabel.Text = $"Период: {period.FormatRange(now)}";
+
+        // Прогноз «до какой даты хватит денег» (ТЗ MVP), горизонт — конец периода
+        var forecast = ForecastEngine.ProjectPeriod(_transactions, DateTime.Today, start, endExclusive);
         RunwayLabel.Text = forecast.RunwayText;
         RunwayChip.IsVisible = true;
     }

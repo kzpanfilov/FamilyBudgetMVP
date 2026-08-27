@@ -101,5 +101,19 @@ namespace FamilyBudgetMVP.Services
             if (horizon < 1) horizon = 1;
             return Project(transactions, asOf, horizon);
         }
+
+        /// <summary>
+        /// Прогноз остатка до конца периода бюджета [startInclusive; endExclusive).
+        /// </summary>
+        public static ForecastResult ProjectPeriod(
+            IEnumerable<Transaction> transactions,
+            DateTime asOf,
+            DateTime startInclusive,
+            DateTime endExclusive)
+        {
+            int horizon = (endExclusive.Date - asOf.Date).Days;
+            if (horizon < 1) horizon = 1;
+            return Project(transactions, asOf, horizon);
+        }
     }
 }

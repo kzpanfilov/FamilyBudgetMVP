@@ -1,4 +1,5 @@
-﻿using Microcharts;
+﻿using FamilyBudgetMVP.Services;
+using Microcharts;
 using SkiaSharp;
 
 namespace FamilyBudgetMVP.Controls
@@ -21,27 +22,13 @@ namespace FamilyBudgetMVP.Controls
         private const float LegendLineGap = 4f;
         private const int MaxLegendLines = 2;
 
-        // Слоты столбцов, заполненные при последней отрисовке (для хит-теста кликов)
-        private readonly List<(SKRect Rect, string Label)> _barSlots = new();
+        private readonly ChartHitDetector _hitDetector = new();
 
-        /// <summary>
-        /// Категория по координатам канвы (пиксели) либо null.
-        /// Слот шире самого столбца — попадание засчитывается по всей колонке.
-        /// </summary>
-        public string? HitTest(float x, float y)
-        {
-            foreach (var slot in _barSlots)
-            {
-                if (slot.Rect.Contains(x, y))
-                    return slot.Label;
-            }
-
-            return null;
-        }
+        public string? HitTest(float x, float y) => _hitDetector.HitTest(x, y);
 
         public override void DrawContent(SKCanvas canvas, int width, int height)
         {
-            _barSlots.Clear();
+            _hitDetector.Clear();
             base.DrawContent(canvas, width, height);
         }
 
@@ -142,9 +129,12 @@ namespace FamilyBudgetMVP.Controls
 
             canvas.DrawText(entry.ValueLabel, centerX, baseline, SKTextAlign.Center, font, paint);
 
-            // Слот на всю ширину колонки и высоту области графика — удобная зона клика
+            // Зона на всю ширину колонки и высоту области графика — удобная зона клика
             float slotLeft = centerX - itemSize.Width / 2;
-            _barSlots.Add((SKRect.Create(slotLeft, 0, itemSize.Width, Math.Max(origin, barY) + Margin), entry.Label));
+            float slotTop = 0;
+            float slotRight = slotLeft + itemSize.Width;
+            float slotBottom = Math.Max(origin, barY) + Margin;
+            _hitDetector.AddZone(slotLeft, slotTop, slotRight, slotBottom, entry.Label);
         }
     }
 }
