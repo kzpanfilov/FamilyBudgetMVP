@@ -72,36 +72,37 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Премиум-замок: перекрывает контент, пока премиум не активирован -->
-        <VerticalStackLayout x:Name="PremiumLock"
-                             Grid.RowSpan="2"
-                             IsVisible="False"
-                             Spacing="12"
-                             Padding="24"
-                             VerticalOptions="Center"
-                             HorizontalOptions="Center"
-                             BackgroundColor="{AppThemeBinding Light={StaticResource Bg}, Dark={StaticResource BgDark}}">
-            <Border WidthRequest="96" HeightRequest="96"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 24"
-                    BackgroundColor="{AppThemeBinding Light=#FFF7E6, Dark=#2B2419}"
-                    HorizontalOptions="Center">
-                <Label Text="🔒" FontSize="44" HorizontalOptions="Center" VerticalOptions="Center"/>
-            </Border>
-            <Label Text="Полный справочник — премиум"
-                   FontFamily="OpenSansSemibold" FontSize="17"
-                   HorizontalTextAlignment="Center"
-                   HorizontalOptions="Center"/>
-            <Label Text="Активируйте премиум в Настройках, чтобы открыть все льготы и шаблоны документов."
-                   FontSize="13"
-                   HorizontalTextAlignment="Center"
-                   MaxLines="3"
-                   HorizontalOptions="Center"
-                   TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
-            <Button Text="⭐  Открыть премиум"
-                    Style="{StaticResource PrimaryButton}"
-                    Clicked="OnPremiumClicked"
-                    HorizontalOptions="Center"/>
-        </VerticalStackLayout>
+        <!-- Премиум-замок: перекрывает весь экран, пока премиум не активирован -->
+        <Grid x:Name="PremiumLock"
+              Grid.RowSpan="2"
+              IsVisible="False"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Bg}, Dark={StaticResource BgDark}}">
+            <VerticalStackLayout Spacing="12"
+                                 Padding="24"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center">
+                <Border WidthRequest="96" HeightRequest="96"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24"
+                        BackgroundColor="{AppThemeBinding Light=#FFF7E6, Dark=#2B2419}"
+                        HorizontalOptions="Center">
+                    <Label Text="🔒" FontSize="44" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label Text="Полный справочник — премиум"
+                       FontFamily="OpenSansSemibold" FontSize="17"
+                       HorizontalTextAlignment="Center"
+                       HorizontalOptions="Center"/>
+                <Label Text="Активируйте премиум в Настройках, чтобы открыть все льготы и шаблоны документов."
+                       FontSize="13"
+                       HorizontalTextAlignment="Center"
+                       MaxLines="3"
+                       HorizontalOptions="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                <Button Text="⭐  Открыть премиум"
+                        Style="{StaticResource PrimaryButton}"
+                        Clicked="OnPremiumClicked"
+                        HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Grid>
     </Grid>
 </ContentPage>
