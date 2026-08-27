@@ -201,6 +201,30 @@ namespace FamilyBudgetMVP.Services
                 .ToList();
         }
 
+        // --- Фильтрация для детализации категории ---
+
+        /// <summary>
+        /// Расходы за месяц по категории (для экрана детализации).
+        /// </summary>
+        public List<Transaction> FilterByCategory(
+            IEnumerable<Transaction> transactions,
+            string category,
+            int? year = null,
+            int? month = null)
+        {
+            var now = DateTime.Today;
+            int y = year ?? now.Year;
+            int m = month ?? now.Month;
+
+            return transactions
+                .Where(t => t.Amount < 0 &&
+                            t.Category == category &&
+                            t.Date.Year == y &&
+                            t.Date.Month == m)
+                .OrderByDescending(t => t.Date)
+                .ToList();
+        }
+
         // --- Группировка истории ---
 
         // Группировка истории по дням: Сегодня / Вчера / d MMMM [yyyy]
