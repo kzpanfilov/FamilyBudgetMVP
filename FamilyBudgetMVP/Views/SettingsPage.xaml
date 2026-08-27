@@ -10,6 +10,34 @@
                              WidthRequest="{OnIdiom Desktop=560, Tablet=560, Phone=-1}">
 
             <VerticalStackLayout Spacing="10" Margin="0,4,0,0">
+
+                <!-- Премиум -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}"/>
+                            <Label Text="Премиум" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Label x:Name="PremiumStatusLabel" FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource InkPrimary}, Dark={StaticResource InkPrimaryDark}}"/>
+
+                        <Label x:Name="PremiumHintLabel" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+
+                        <Border Style="{StaticResource InputWrap}">
+                            <Entry x:Name="PremiumCodeEntry"
+                                   Placeholder="BP-XXXXX-XXXXX-XXXXX-XXXXX"/>
+                        </Border>
+
+                        <Button x:Name="ActivatePremiumButton"
+                                Text="Активировать премиум"
+                                Style="{StaticResource PrimaryButton}"
+                                Clicked="OnActivatePremiumClicked"/>
+                    </VerticalStackLayout>
+                </Border>
+
                 <HorizontalStackLayout Spacing="8">
                     <Rectangle WidthRequest="4" HeightRequest="18" RadiusX="2" RadiusY="2" Fill="{StaticResource Teal500}" VerticalOptions="Center"/>
                     <Label Text="Категории" Style="{StaticResource SectionTitle}" VerticalOptions="Center"/>

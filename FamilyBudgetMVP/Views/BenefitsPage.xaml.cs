@@ -22,25 +22,13 @@ namespace FamilyBudgetMVP.Views
             InitializeComponent();
             _benefits = benefits;
             _fileSaver = fileSaver;
-
-            // Freemium: полный справочник — премиум (сейчас флаг открыт)
-            if (!FeatureGate.IsUnlocked(Feature.FullBenefits))
-            {
-                ContentHost.Children.Clear();
-                ContentHost.Children.Add(new Label
-                {
-                    Text = "🔒  Полный справочник доступен в премиум-версии",
-                    FontFamily = "OpenSansSemibold",
-                    FontSize = 16,
-                    HorizontalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(0, 48, 0, 0)
-                });
-            }
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+
+            PremiumLock.IsVisible = !FeatureGate.IsUnlocked(Feature.FullBenefits);
 
             try
             {
@@ -65,6 +53,11 @@ namespace FamilyBudgetMVP.Views
                 LogService.Error(ex, "Льготы: загрузка");
                 ActualLabel.Text = "Не удалось загрузить справочник";
             }
+        }
+
+        private async void OnPremiumClicked(object? sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//settings");
         }
 
         private async void OnSearchChanged(object? sender, TextChangedEventArgs e) => await ReloadResultsAsync();

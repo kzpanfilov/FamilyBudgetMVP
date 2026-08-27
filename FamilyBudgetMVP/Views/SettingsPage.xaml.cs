@@ -55,6 +55,76 @@ namespace FamilyBudgetMVP.Views
             var lockService = ServiceHelper.Get<LockService>();
             LockSwitch.IsToggled = lockService.IsEnabled;
             ChangePinButton.IsVisible = lockService.IsEnabled;
+
+            RefreshPremiumUi();
+        }
+
+        // --- Премиум: статус и активация по коду ---
+
+        private void RefreshPremiumUi()
+        {
+            if (FeatureGate.IsPremium)
+            {
+                var until = FeatureGate.ValidUntilUtc ?? DateTime.UtcNow;
+                PremiumStatusLabel.Text = $"⭐ Премиум активен{(FeatureGate.ValidUntilUtc != null ? $" до {until.ToLocalTime():d MMMM yyyy}" : " бессрочно")}";
+                PremiumStatusLabel.FontFamily = "OpenSansSemibold";
+                PremiumStatusLabel.TextColor = Color.FromArgb("#14B8A6");
+                PremiumHintLabel.Text = "Все функции доступны. Спасибо за поддержку! ❤️";
+                PremiumCodeEntry.IsVisible = false;
+                PremiumCodeEntry.Text = string.Empty;
+                ActivatePremiumButton.IsVisible = false;
+            }
+            else
+            {
+                PremiumStatusLabel.Text = "Бесплатная версия — Сценарии и полный справочник льгот доступны в премиуме";
+                PremiumStatusLabel.FontFamily = "OpenSansRegular";
+                PremiumStatusLabel.TextColor = Color.FromArgb("#94A3B8");
+                PremiumHintLabel.Text = "Введи код активации (получают участники семейного проекта).";
+                PremiumCodeEntry.IsVisible = true;
+                ActivatePremiumButton.IsVisible = true;
+            }
+        }
+
+        private async void OnActivatePremiumClicked(object? sender, EventArgs e)
+        {
+            var code = PremiumCodeEntry.Text?.Trim() ?? string.Empty;
+
+            if (code.Length == 0)
+            {
+                await DisplayAlertAsync("Код активации", "Введи код, полученный от бота Бюджет+.", "OK");
+                return;
+            }
+
+            var result = PremiumActivation.Validate(code, DateTime.UtcNow);
+
+            switch (result.Status)
+            {
+                case PremiumActivationStatus.Valid when result.ValidUntilUtc is { } until:
+                    try
+                    {
+                        var store = ServiceHelper.Get<IPremiumStore>();
+                        store.Activate(until);
+
+                        LogService.Info($"Премиум активирован до {until:yyyy-MM-dd}");
+                        RefreshPremiumUi();
+                        await DisplayAlertAsync("Премиум активирован 🎉",
+                            $"Все функции доступны до {until.ToLocalTime():d MMMM yyyy}.", "Отлично");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.Error(ex, "Активация премиума");
+                        await DisplayAlertAsync("Ошибка", $"Не удалось сохранить активацию: {ex.Message}", "OK");
+                    }
+                    break;
+
+                case PremiumActivationStatus.Expired:
+                    await DisplayAlertAsync("Код истёк", "Срок действия этого кода уже закончился. Запроси новый код.", "OK");
+                    break;
+
+                default:
+                    await DisplayAlertAsync("Неверный код", "Проверь код — он введён с ошибкой или не существует.", "OK");
+                    break;
+            }
         }
 
         // --- Палитра выбора цвета ---

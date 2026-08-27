@@ -31,6 +31,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<BudgetService>();
         builder.Services.AddSingleton<NotificationService>();
         builder.Services.AddSingleton<LockService>();
+        builder.Services.AddSingleton<Services.IPremiumStore, Services.PremiumPreferencesStore>();
         builder.Services.AddTransient<FamilyBudgetMVP.Views.LockPage>();
 
         // Модалка добавления — transient: каждый раз новый экземпляр с пустой формой
@@ -60,6 +61,9 @@ public static class MauiProgram
 #endif
 
 		var app = builder.Build();
+
+        // Премиум: подключаем реальное хранилище (Preferences) к гейту функций
+        Services.FeatureGate.PremiumStore = app.Services.GetRequiredService<Services.IPremiumStore>();
 
 		// Прогрев: инициализируем БД и кэш категорий в фоне (без UI-потока),
 		// чтобы первая вкладка не ждала миграций
