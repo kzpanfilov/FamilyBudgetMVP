@@ -20,13 +20,26 @@
     }
 
     /// <summary>
-    /// Флаги монетизации: переключение одной константой.
-    /// UI проверяет доступ через IsUnlocked перед показом/запуском функции.
+    /// Флаги монетизации. Статус премиума читается из хранилища
+    /// (<see cref="PremiumStore"/>), которое MAUI привязывает к Preferences
+    /// при старте. UI проверяет доступ через IsUnlocked перед показом/запуском функции.
     /// </summary>
     public static class FeatureGate
     {
-        // TODO(monetization): купить/активировать премиум здесь
-        public static bool IsPremium { get; } = false;
+        // По умолчанию — без премиума, пока MAUI не подставит реальное хранилище.
+        private static IPremiumStore _store = new NoPremiumStore();
+
+        /// <summary>Источник статуса премиума. Задаётся один раз при старте приложения.</summary>
+        public static IPremiumStore PremiumStore
+        {
+            get => _store;
+            set => _store = value ?? throw new ArgumentNullException(nameof(value));
+        }
+
+        public static bool IsPremium => _store.IsPremium;
+
+        /// <summary>Срок действия премиума (UTC) или null, если премиума нет.</summary>
+        public static DateTime? ValidUntilUtc => _store.ValidUntilUtc;
 
         public static bool IsUnlocked(Feature feature) => feature switch
         {
@@ -34,5 +47,14 @@
             Feature.Scenarios or Feature.Templates or Feature.FullBenefits => IsPremium,
             _ => true
         };
+    }
+
+    /// <summary>Заглушка: никогда не премиум (до привязки реального хранилища).</summary>
+    internal sealed class NoPremiumStore : IPremiumStore
+    {
+        public bool IsPremium => false;
+        public DateTime? ValidUntilUtc => null;
+        public void Activate(DateTime validUntilUtc) { }
+        public void Deactivate() { }
     }
 }
