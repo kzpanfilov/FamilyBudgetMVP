@@ -35,16 +35,26 @@ namespace FamilyBudgetMVP.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await ReloadAsync();
-        }
 
-        private async Task ReloadAsync()
-        {
             try
             {
                 // Гарантируем готовность БД и кэша категорий (идемпотентно)
                 await _txService.InitializeAsync();
                 await _categories.InitializeAsync();
+
+                // Кэш мог быть пуст при первом открытии (конструктор отработал до загрузки),
+                // поэтому пересобираем список категорий, сохраняя выбранный фильтр
+                string? wanted = CategoryFilterPicker.SelectedIndex > 0
+                    ? CategoryFilterPicker.SelectedItem?.ToString()
+                    : null;
+
+                var items = new List<string> { "Все категории" }.Concat(_categories.Names).ToList();
+                CategoryFilterPicker.ItemsSource = items;
+
+                if (wanted != null && items.Contains(wanted))
+                    CategoryFilterPicker.SelectedItem = wanted;
+                else
+                    CategoryFilterPicker.SelectedIndex = 0;
 
                 _all = await _txService.GetTransactionsAsync();
                 ApplyFilters();

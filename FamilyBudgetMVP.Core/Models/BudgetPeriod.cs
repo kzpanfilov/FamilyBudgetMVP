@@ -43,6 +43,9 @@ namespace FamilyBudgetMVP.Models
             var endExclusiveDay = endExclusive.AddDays(-1);
 
             var startStr = $"{start.Day} {ShortMonth(start)}";
+            if (start.Year != endExclusiveDay.Year)
+                startStr += $" {start.Year}";
+
             var endStr = start.Year == endExclusiveDay.Year
                 ? $"{endExclusiveDay.Day} {ShortMonth(endExclusiveDay)}"
                 : $"{endExclusiveDay.Day} {ShortMonth(endExclusiveDay)} {endExclusiveDay.Year}";

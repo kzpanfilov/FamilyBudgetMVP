@@ -149,7 +149,7 @@ public partial class MainPage : ContentPage
         {
             ChartView.Content = new Label
             {
-                Text = "📊 Расходов за этот месяц нет",
+                Text = "📊 Расходов за этот период нет",
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 FontFamily = "OpenSansSemibold",

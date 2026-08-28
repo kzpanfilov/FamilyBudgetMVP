@@ -138,7 +138,7 @@ namespace FamilyBudgetMVP.Views
         {
             var parts = new List<string>();
             if (scenario.IncomeChange != 0) parts.Add($"доход {(scenario.IncomeChange > 0 ? "+" : "")}{scenario.IncomeChange:N0}");
-            if (scenario.ExpenseChange != 0) parts.Add($"расход +{scenario.ExpenseChange:N0}");
+            if (scenario.ExpenseChange != 0) parts.Add($"расход {(scenario.ExpenseChange > 0 ? "+" : "")}{scenario.ExpenseChange:N0}");
             if (scenario.OneTimeSubsidy != 0) parts.Add($"субсидия {scenario.OneTimeSubsidy:N0}");
             string summary = parts.Count == 0 ? "без изменений" : string.Join(", ", parts);
 

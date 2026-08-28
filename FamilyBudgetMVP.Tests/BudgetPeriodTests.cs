@@ -57,6 +57,15 @@ namespace FamilyBudgetMVP.Tests
         }
 
         [Fact]
+        public void CustomPeriod_FormatRange_Cross_Year_Shows_Year_On_Both_Edges()
+        {
+            var period = new BudgetPeriod(25, 4);
+
+            // Период 25.12.2026 … 04.01.2027 → старт и конец в разных годах
+            Assert.Equal("25 дек 2026 — 4 янв 2027", period.FormatRange(new DateTime(2026, 12, 26)));
+        }
+
+        [Fact]
         public void CustomPeriod_FormatRange_Same_Year()
         {
             var period = new BudgetPeriod(21, 4);

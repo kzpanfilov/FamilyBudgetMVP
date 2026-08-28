@@ -168,6 +168,9 @@ namespace FamilyBudgetMVP.Views
 
             try
             {
+                // Базовая дата операции (для новой — сегодня)
+                DateTime baseDate = (_editing?.Date ?? DateTime.Today).Date;
+
                 var transaction = new Transaction
                 {
                     Description = DescriptionEntry.Text.Trim(),
@@ -177,8 +180,10 @@ namespace FamilyBudgetMVP.Views
                     RecurrenceType = RecurrencePicker.SelectedIndex > 0
                         ? Recurrence.All[RecurrencePicker.SelectedIndex]
                         : Recurrence.None,
-                    RecurEndDate = RecurrencePicker.SelectedIndex > 0
-                        ? RecurEndDatePicker.Date
+                    // Дата окончания по умолчанию (сегодня) = «бессрочно»:
+                    // иначе неотредактированный пикер молча обнулял повторяемость
+                    RecurEndDate = RecurrencePicker.SelectedIndex > 0 && RecurEndDatePicker.Date > baseDate
+                        ? ((DateTime?)RecurEndDatePicker.Date)?.Date
                         : null
                 };
 

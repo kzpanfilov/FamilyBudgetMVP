@@ -64,8 +64,8 @@ namespace FamilyBudgetMVP.Services
             }
 
             decimal balance = startBalance;
-            bool runsOut = false;
-            DateTime runoutDate = horizonEnd;
+            bool runsOut = startBalance < 0;
+            DateTime runoutDate = runsOut ? asOf.Date : horizonEnd;
 
             for (var day = NextDay(asOf.Date); day <= horizonEnd; day = day.AddDays(1))
             {
