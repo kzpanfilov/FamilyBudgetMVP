@@ -78,9 +78,12 @@
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button Grid.Column="0" Text="Сохранить период"
                                     Style="{StaticResource PrimaryButton}"
+                                    FontSize="14"
                                     Clicked="OnSavePeriodClicked"/>
                             <Button Grid.Column="1" Text="Календарный месяц"
-                                    Style="{StaticResource GhostDelete}"
+                                    Style="{StaticResource SecondaryButton}"
+                                    FontSize="13"
+                                    LineBreakMode="WordWrap"
                                     Clicked="OnResetPeriodClicked"/>
                         </Grid>
                     </VerticalStackLayout>
