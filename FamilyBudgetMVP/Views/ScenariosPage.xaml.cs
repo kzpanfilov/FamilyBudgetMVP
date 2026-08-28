@@ -156,33 +156,31 @@ namespace FamilyBudgetMVP.Views
                 {
                     new ColumnDefinition(GridLength.Star),
                     new ColumnDefinition(GridLength.Auto)
-                },
-                Children =
-                {
-                    new VerticalStackLayout
-                    {
-                        Spacing = 2,
-                        Children =
-                        {
-                            new Label
-                            {
-                                Text = scenario.Name,
-                                FontFamily = "OpenSansSemibold",
-                                FontSize = 15,
-                                TextColor = (Color)Application.Current.Resources["InkPrimary"]
-                            },
-                            new Label
-                            {
-                                Text = summary,
-                                FontSize = 12,
-                                TextColor = (Color)Application.Current.Resources["InkSecondary"]
-                            }
-                        }
-                    },
-                    delete
                 }
             };
-            content.ColumnDefinitions[1].Width = GridLength.Auto;
+            // Явная раскладка: текст — колонка 0, крестик — колонка 1,
+            // чтобы кнопка не наезжала на описание при любом расположении
+            content.Add(new VerticalStackLayout
+            {
+                Spacing = 2,
+                Children =
+                {
+                    new Label
+                    {
+                        Text = scenario.Name,
+                        FontFamily = "OpenSansSemibold",
+                        FontSize = 15,
+                        TextColor = (Color)Application.Current.Resources["InkPrimary"]
+                    },
+                    new Label
+                    {
+                        Text = summary,
+                        FontSize = 12,
+                        TextColor = (Color)Application.Current.Resources["InkSecondary"]
+                    }
+                }
+            }, column: 0, row: 0);
+            content.Add(delete, column: 1, row: 0);
 
             var tap = new TapGestureRecognizer();
             tap.Tapped += async (_, _) => await OnScenarioTappedAsync(scenario);

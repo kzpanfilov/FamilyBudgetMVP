@@ -67,29 +67,34 @@ namespace FamilyBudgetMVP.Views
             var store = ServiceHelper.Get<BudgetPeriodStore>();
             var period = store.GetCurrent();
 
-            PeriodStartDayEntry.Text = period.StartDay.ToString(CultureInfo.InvariantCulture);
-            PeriodEndDayEntry.Text = period.EndDay.ToString(CultureInfo.InvariantCulture);
+            // Пикеры показывают реальные даты текущего периода бюджета
+            var (start, endExclusive) = period.Resolve(DateTime.Today);
+            PeriodStartPicker.Date = start;
+            PeriodEndPicker.Date = endExclusive.AddDays(-1);
 
             var isCalendarMonth = period == BudgetPeriod.CalendarMonth;
             BudgetPeriodHintLabel.Text = isCalendarMonth
                 ? "Баланс и прогноз считаются за текущий календарный месяц."
-                : $"Баланс и прогноз считаются за период: {period.FormatRange(DateTime.Today)}.\nЗадайте свои границы месяца — например, 21 по 4 (с 21-го числа по 4-е следующего месяца).";
+                : $"Баланс и прогноз считаются за период: {period.FormatRange(DateTime.Today)}.\nПериод повторяется каждый месяц. Задайте дату начала и последний день.";
         }
 
         private void OnSavePeriodClicked(object? sender, EventArgs e)
         {
-            int startDay = ParseDay(PeriodStartDayEntry.Text);
-            int endDay = ParseDay(PeriodEndDayEntry.Text);
+            var start = ((DateTime?)PeriodStartPicker.Date)?.Date ?? DateTime.Today;
+            var end = ((DateTime?)PeriodEndPicker.Date)?.Date ?? DateTime.Today;
 
-            if (startDay is <= 0 || endDay is <= 0)
+            if (end <= start)
             {
-                DisplayAlertAsync("Ошибка", "Введите дни периода числами от 1 до 31.", "OK");
+                DisplayAlertAsync("Ошибка", "Дата конца периода должна быть позже даты начала.", "OK");
                 return;
             }
 
-            ServiceHelper.Get<BudgetPeriodStore>().Save(new Models.BudgetPeriod(startDay, endDay));
+            // Период цикличен: запоминаем день месяца, диапазон повторяется каждый месяц
+            ServiceHelper.Get<BudgetPeriodStore>().Save(new Models.BudgetPeriod(start.Day, end.Day));
             RefreshBudgetPeriodUi();
-            DisplayAlertAsync("Сохранено", "Период бюджета обновлён. Дашборд пересчитает баланс и прогноз.", "OK");
+
+            var current = ServiceHelper.Get<BudgetPeriodStore>().GetCurrent();
+            DisplayAlertAsync("Сохранено", $"Период бюджета: {current.FormatRange(DateTime.Today)}.\nОн повторяется каждый месяц. Дашборд пересчитает баланс и прогноз.", "OK");
         }
 
         private void OnResetPeriodClicked(object? sender, EventArgs e)
@@ -98,14 +103,6 @@ namespace FamilyBudgetMVP.Views
             RefreshBudgetPeriodUi();
             DisplayAlertAsync("Сброшено", "Период снова считается за календарный месяц.", "OK");
         }
-
-        private static int ParseDay(string? text) => int.TryParse(
-            (text ?? string.Empty).Trim(),
-            NumberStyles.None,
-            CultureInfo.InvariantCulture,
-            out int day)
-                ? day
-                : 0;
 
         // --- Премиум: статус и активация по коду ---
 

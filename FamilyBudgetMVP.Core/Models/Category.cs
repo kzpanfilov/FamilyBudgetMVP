@@ -26,6 +26,6 @@ namespace FamilyBudgetMVP.Models
         public int SortOrder { get; set; }
 
         // Подпись лимита для списка настроек
-        public string LimitText => MonthlyLimit > 0 ? $"лимит {MonthlyLimit:N0} ₽/мес" : "без лимита";
+        public string LimitText => MonthlyLimit > 0 ? $"лимит {MonthlyLimit:N0} ₽/месяц" : "без лимита";
     }
 }

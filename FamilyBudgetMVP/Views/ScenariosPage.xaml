@@ -43,14 +43,14 @@
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
-                                <Label Text="Изменение дохода, ₽/мес (±)" FontSize="12"
+                                <Label Text="Изменение дохода, ₽/месяц (±)" FontSize="12"
                                        TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
                                 <Border Style="{StaticResource InputWrap}">
-                                    <Entry x:Name="IncomeChangeEntry" Placeholder="−15000 или 20000" Keyboard="Numeric"/>
+                                    <Entry x:Name="IncomeChangeEntry" Placeholder="−15000 / 20000" Keyboard="Numeric"/>
                                 </Border>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                <Label Text="Изменение расхода, ₽/мес (+)" FontSize="12"
+                                <Label Text="Изменение расхода, ₽/месяц (+)" FontSize="12"
                                        TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
                                 <Border Style="{StaticResource InputWrap}">
                                     <Entry x:Name="ExpenseChangeEntry" Placeholder="8000" Keyboard="Numeric"/>

@@ -59,28 +59,27 @@
                         <Label x:Name="BudgetPeriodHintLabel" FontSize="13"
                                TextColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
 
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Border Grid.Column="0" Style="{StaticResource InputWrap}">
-                                <Entry x:Name="PeriodStartDayEntry"
-                                       Keyboard="Numeric"
-                                       MaxLength="2"
-                                       Placeholder="день начала (1-31)"
-                                       PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Начало периода" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                            <Border Style="{StaticResource InputWrap}">
+                                <DatePicker x:Name="PeriodStartPicker" FontSize="14"/>
                             </Border>
-                            <Border Grid.Column="1" Style="{StaticResource InputWrap}">
-                                <Entry x:Name="PeriodEndDayEntry"
-                                       Keyboard="Numeric"
-                                       MaxLength="2"
-                                       Placeholder="день конца (1-31)"
-                                       PlaceholderColor="{AppThemeBinding Light={StaticResource InkTertiary}, Dark={StaticResource InkTertiaryDark}}"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Конец периода (последний день)" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource InkSecondary}, Dark={StaticResource InkSecondaryDark}}"/>
+                            <Border Style="{StaticResource InputWrap}">
+                                <DatePicker x:Name="PeriodEndPicker" FontSize="14"/>
                             </Border>
-                        </Grid>
+                        </VerticalStackLayout>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <Button Grid.Column="0" Text="Сохранить период"
                                     Style="{StaticResource PrimaryButton}"
                                     Clicked="OnSavePeriodClicked"/>
-                            <Button Grid.Column="1" Text="Месяц"
+                            <Button Grid.Column="1" Text="Календарный месяц"
                                     Style="{StaticResource GhostDelete}"
                                     Clicked="OnResetPeriodClicked"/>
                         </Grid>
